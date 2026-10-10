@@ -3,6 +3,7 @@
 
 package com.dashline.launcher
 
+import android.annotation.SuppressLint
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -117,6 +118,7 @@ object WeatherRepository {
         else -> R.drawable.ic_wx_cloudy to R.string.wx_overcast
     }
 
+    @SuppressLint("MissingPermission")
     private fun lastKnownLocation(context: Context): Location? {
         if (!hasLocationPermission(context)) return null
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager

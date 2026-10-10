@@ -1,3 +1,14 @@
+## Smart Trolley OS edition
+
+This branch adapts Dashline into a landscape HOME launcher for a dedicated
+smart-trolley tablet. It keeps the original GPLv3 code and adds an offline-first
+dashboard, external map directions, railway and airport assistants, and tablet
+status. The original Dashline screens remain in the source but are no longer the
+launch screen.
+
+See [Smart Trolley OS build, operation and recovery](SMART_TROLLEY_OS.md) for
+what is connected, what is simulated, API 19 compatibility, and tablet setup.
+
 <p align="center">
   <img src="docs/logo.png" alt="Dashline" width="96">
 </p>

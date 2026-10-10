@@ -1,22 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--
-      QUERY_ALL_PACKAGES lets us enumerate every installed app so the drawer can
-      list them. Required on Android 11+ (API 30) because of package visibility.
-      Note: Google Play restricts this permission, but cheap head units almost
-      never ship the Play Store, so sideloading is the norm here.
-    -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
-
-    <!-- For the Google Maps static preview. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Location is used to fetch local weather; optional (weather just hides if denied). -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
 
     <application
         android:name=".App"
@@ -29,14 +17,22 @@
 
         <activity
             android:name=".HomeActivity"
-            android:exported="true"
+            android:exported="false"
             android:launchMode="singleTask"
             android:stateNotNeeded="true"
             android:configChanges="keyboard|keyboardHidden|navigation"
+            android:theme="@style/Theme.RadioLauncher" />
+
+        <activity
+            android:name=".TrolleyHomeActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.RadioLauncher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <!-- HOME + DEFAULT is what makes Android offer this app as a launcher. -->
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -90,22 +86,6 @@
             android:exported="false"
             android:configChanges="keyboard|keyboardHidden|navigation"
             android:parentActivityName=".HomeActivity" />
-
-        <!--
-          Empty notification listener. Its only job is to let the user grant
-          "Notification access", which unlocks reading the active MediaSession so
-          the media widget can show what's playing. Bound by the system only
-          (protected by BIND_NOTIFICATION_LISTENER_SERVICE).
-        -->
-        <service
-            android:name=".MediaNotificationListener"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
 
     </application>
 </manifest>
