@@ -133,9 +133,11 @@ python -m pytest -q
 - Phase 3 APK remains unmodified at
   `C:\Users\satvi\Documents\SmartTrolleyOS\backups\phase3-device-tested.apk`,
   SHA-256 `58D7F0AA0A1380DEE04EE47E9ACC4CD42FA3E42D168EC835946F2E891109A24A`.
-  Phase 2 backup also exists; both backups were preserved. New and Phase 3 APK
-  debug signing certificate SHA-256 matches, supporting `adb install -r`
-  rollback/update without uninstalling or clearing app data.
+  Phase 2 backup also exists; both backups were preserved. New APK is also
+  copied to `C:\Users\satvi\Documents\SmartTrolleyOS\backups\phase4-recovery-build.apk`
+  with the same SHA-256 as the build output. New and Phase 3 APK debug signing
+  certificate SHA-256 matches, supporting `adb install -r` rollback/update
+  without uninstalling or clearing app data.
 - APK is 67,115 bytes larger than Phase 3 build; map dataset is external.
 - Build warnings are existing Android deprecated-network APIs and Java 8
   source/target under JDK 21; build has no compilation errors.
