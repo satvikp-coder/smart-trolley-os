@@ -11,3 +11,11 @@
 - No Mapsforge code, map dataset, or GraphHopper SDK is bundled. The optional
   GraphHopper-compatible adapter is project code and requires an authorized
   HTTPS proxy configured by the operator.
+# Phase 4 notice
+
+Mapsforge 0.21 was evaluated but is not included in the Android APK. Its
+upstream library is LGPL-3.0. The FastAPI service is a separate source component
+using FastAPI (MIT), Pydantic (MIT), and HTTPX (BSD-3-Clause); deployer must
+retain relevant upstream notices when distributing that service. No map data
+was acquired; OSM-derived data must include OSM attribution and comply with
+ODbL and source provider terms.

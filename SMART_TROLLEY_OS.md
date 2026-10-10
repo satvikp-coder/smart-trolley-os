@@ -118,3 +118,11 @@ These steps do not disable, remove, or modify Android system applications.
 
 This work retains Dashline's GPLv3 license and upstream attribution:
 <https://github.com/metehankaygsz/dashline>.
+# Phase 4 implementation status
+
+Phase 4 did not replace the functioning Phase 3 UI. The app remains an Android
+HOME candidate on API 19 but has not been made the device default. Offline map
+rendering, live rail/flight data, and locally cached reference datasets are not
+implemented. The separate backend is source-only and has no configured
+credentials or deployment. See `PHASE4_FINAL_REPORT.md` for actual checks and
+remaining blockers.

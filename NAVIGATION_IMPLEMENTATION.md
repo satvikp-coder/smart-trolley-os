@@ -77,3 +77,18 @@ The app's TLS 1.2 socket adapter uses Android's default trust configuration and
 does not accept invalid certificates. It is not a guarantee that API 19 can
 connect to every modern HTTPS server: server cipher/protocol negotiation may
 still fail. The observed failure is documented rather than bypassed.
+# Phase 4 status update (2026-10-11)
+
+The Phase 3 osmdroid screen is preserved as the working fallback; online tiles
+remain unusable on the tested KitKat tablet because of TLS negotiation. No
+offline map renderer or Ahmedabad map file is installed. Mapsforge 0.21 was
+checked as a likely candidate and its artifact resolved, but not integrated.
+BBBike provides Mapsforge extracts, but this machine rejected the provider
+certificate (`SEC_E_UNTRUSTED_ROOT`); TLS was not bypassed and no data was
+obtained.
+
+Backend source now includes proposed HTTPS GraphHopper-compatible geocode/route
+endpoints. They return `NOT_AVAILABLE` until a provider key is configured on a
+host. No API credentials, backend URL, deployment, or live result exists.
+Android app is not yet wired to the new backend. See
+`OFFLINE_MAP_IMPLEMENTATION.md` and `TRAVEL_BACKEND_SETUP.md`.

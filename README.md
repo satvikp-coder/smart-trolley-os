@@ -402,3 +402,17 @@ it keep the same freedoms.
 
 Source files carry `SPDX-License-Identifier: GPL-3.0-only`, so the terms travel
 with the code rather than only with the repository.
+# Smart Trolley OS Phase 4 status
+
+Phase 3 dashboard/modules remain the working application. The Phase 4 branch
+adds a standalone FastAPI backend contract under `backend/`; it is not deployed
+and the Android client is not yet connected to it. No live railway or flight
+provider credentials are configured. No offline map dataset is bundled or
+installed, so the existing online osmdroid map remains subject to the documented
+Android 4.4 TLS limitation. Do not interpret backend adapters as proof of live
+service integration. Phase 4 status and safe device constraints are in
+`PHASE4_FINAL_REPORT.md`.
+
+To build the API-19 APK, set `ANDROID_HOME` to an installed Android SDK and run
+`gradlew.bat :app:assembleLegacyDebug`. Backend setup and tests are documented in
+`TRAVEL_BACKEND_SETUP.md` and `backend/README.md`.
