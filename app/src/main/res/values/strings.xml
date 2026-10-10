@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dashline</string>
+
+    <!-- bottom tabs -->
+    <string name="tab_audio">Audio</string>
+    <string name="tab_phone">Phone</string>
+    <string name="tab_nav">Nav</string>
+    <string name="tab_apps">Apps</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- app drawer -->
+    <string name="all_apps">All Apps</string>
+    <string name="no_apps">No launchable apps found</string>
+    <string name="app_icon">App icon</string>
+    <string name="search_apps">Search apps</string>
+    <string name="frequent">Frequently used</string>
+    <string name="hide_app">Hide from drawer</string>
+    <string name="settings_reset_hidden">Reset hidden apps</string>
+    <string name="couldnt_launch">Couldn\'t launch %1$s</string>
+    <string name="hidden_count">%1$d hidden</string>
+
+    <!-- audio chooser -->
+    <string name="audio_radio">Radio</string>
+
+    <!-- media widget -->
+    <string name="media_previous">Previous</string>
+    <string name="media_play_pause">Play or pause</string>
+    <string name="media_next">Next</string>
+    <string name="media_nothing_playing">Nothing playing</string>
+    <string name="media_tap_to_open">Tap to open</string>
+    <string name="media_enable_access">Tap to enable media info</string>
+
+    <!-- phone projection shortcuts (brand names, not translated) -->
+    <string name="shortcut_android_auto">Android Auto</string>
+    <string name="shortcut_carplay">CarPlay</string>
+
+    <!-- weather forecast -->
+    <string name="forecast_high_low">%1$s / %2$s</string>
+
+    <!-- setup -->
+    <string name="setup_title">Welcome</string>
+    <string name="setup_subtitle">Let\'s set up your launcher.</string>
+    <string name="setup_choose_phone">Choose your Phone app</string>
+    <string name="setup_choose_nav">Choose your Navigation app</string>
+    <string name="setup_choose_media">Choose your Media app</string>
+    <string name="setup_choose_language">Language</string>
+    <string name="setup_done">Done</string>
+    <string name="not_set">Not set</string>
+    <string name="setup_permissions">Permissions</string>
+    <string name="setup_permissions_hint">These let the launcher show weather and what\'s playing.</string>
+    <string name="settings_location_access">Location access</string>
+    <string name="access_granted">Granted</string>
+    <string name="access_needed">Tap to grant</string>
+
+    <!-- settings -->
+    <string name="settings_title">Launcher Settings</string>
+    <string name="section_general">GENERAL</string>
+    <string name="section_apps">DEFAULT APPS</string>
+    <string name="section_access">PERMISSIONS</string>
+    <string name="section_drawer">APP DRAWER</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system">System default</string>
+    <string name="settings_phone_app">Phone app</string>
+    <string name="settings_nav_app">Navigation app</string>
+    <string name="settings_radio_app">Radio app</string>
+    <string name="settings_media_app">Media app (when nothing is playing)</string>
+    <string name="settings_android_auto_app">Android Auto app</string>
+    <string name="settings_carplay_app">CarPlay app</string>
+    <string name="settings_notification_access">Media info access</string>
+    <string name="access_enabled">Enabled</string>
+    <string name="access_disabled">Disabled — tap to turn on</string>
+    <string name="settings_temp_unit">Temperature unit</string>
+    <string name="unit_celsius">Celsius (°C)</string>
+    <string name="unit_fahrenheit">Fahrenheit (°F)</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_customize">Customize home screen</string>
+    <string name="customize_hint">Drag the bar between the cards to resize them.</string>
+    <string name="customize_hint_split">Media card: %1$d%% of the column. Drag the bar to resize.</string>
+    <string name="customize_hint_portrait">Cards stack in portrait, so sizes are set in landscape.</string>
+    <string name="customize_swap">Swap</string>
+    <string name="customize_second_card">Second card</string>
+    <string name="customize_reset">Reset</string>
+    <string name="customize_pick_widget">Choose a widget</string>
+    <string name="customize_sample_date">Monday, 1 January</string>
+    <string name="customize_sample_track">Sample Track</string>
+    <string name="customize_sample_artist">Artist</string>
+    <string name="second_widget">Widget</string>
+    <string name="settings_second_card">Second card</string>
+    <string name="second_phone">Phone</string>
+    <string name="second_shortcuts">App shortcuts</string>
+    <string name="settings_clock_style">Clock style</string>
+    <string name="clock_digital">Digital</string>
+    <string name="clock_analog">Analog</string>
+    <string name="clock_minimal">Minimal</string>
+    <string name="settings_chrono">Stopwatch</string>
+    <string name="chrono_start_stop">Start or stop</string>
+    <string name="chrono_reset">Reset</string>
+    <string name="settings_tabs">Bottom tabs</string>
+    <string name="section_tabs">TABS</string>
+    <string name="tabs_hint">Reorder the bottom bar, or hide tabs your unit doesn\'t need.</string>
+    <string name="tabs_count">%1$d shown</string>
+    <string name="tabs_reset">Reset to default</string>
+    <string name="tab_move_up">Move up</string>
+    <string name="tab_move_down">Move down</string>
+    <string name="tab_toggle_visible">Show or hide</string>
+    <string name="settings_gradient">Colour theme</string>
+    <string name="section_appearance">APPEARANCE</string>
+    <string name="gradient_preview_hint">Preview of the selected colours</string>
+    <string name="gradient_midnight">Midnight</string>
+    <string name="gradient_ocean">Ocean</string>
+    <string name="gradient_sunset">Sunset</string>
+    <string name="gradient_forest">Forest</string>
+    <string name="gradient_violet">Violet</string>
+    <string name="gradient_crimson">Crimson</string>
+    <string name="gradient_graphite">Graphite</string>
+    <string name="theme_auto">Auto (by time of day)</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">Follow system</string>
+    <string name="settings_keep_on">Keep screen on</string>
+    <string name="settings_default_launcher">Default launcher</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="yes">Yes</string>
+    <string name="set_now">Not set — tap to set</string>
+
+    <!-- weather -->
+    <string name="weather_unavailable">Weather unavailable</string>
+    <string name="weather_loading">Loading weather…</string>
+    <string name="wx_clear">Clear</string>
+    <string name="wx_mainly_clear">Mainly clear</string>
+    <string name="wx_partly_cloudy">Partly cloudy</string>
+    <string name="wx_overcast">Overcast</string>
+    <string name="wx_fog">Fog</string>
+    <string name="wx_drizzle">Drizzle</string>
+    <string name="wx_rain">Rain</string>
+    <string name="wx_snow">Snow</string>
+    <string name="wx_showers">Showers</string>
+    <string name="wx_thunderstorm">Thunderstorm</string>
+
+    <!-- favorites dock -->
+    <string name="pick_favorite">Pick a favorite app</string>
+    <string name="fav_change">Change app</string>
+    <string name="fav_remove">Remove</string>
+
+    <!-- volume -->
+    <string name="volume_mute">Mute or unmute</string>
+
+    <!-- in-app navigation -->
+    <string name="nav_back">Back</string>
+    <string name="nav_home">Home</string>
+
+    <!-- misc -->
+    <string name="pick_an_app">Pick an app</string>
+    <string name="app_not_found">App not found — choose one in Settings</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="widget_none">No widgets available on this device</string>
+    <string name="drawer_page">Page %1$d of %2$d</string>
+    <string name="customize_media_card">Media card</string>
+    <string name="card_media_player">Media player</string>
+    <string name="widget_add">Add a widget</string>
+    <string name="widget_change">Change</string>
+    <string name="widget_remove">Remove</string>
+    <string name="widget_full">A card holds up to %1$d widgets</string>
+    <string name="customize_favorites">Favourites</string>
+    <string name="favorites_slots">Slots</string>
+    <string name="favorites_size">Icon size</string>
+    <string name="size_small">Small</string>
+    <string name="size_medium">Medium</string>
+    <string name="size_large">Large</string>
+    <string name="favorites_option">%1$s: %2$s</string>
+    <string name="customize_clock_panel">Clock panel</string>
+    <string name="card_clock">Clock</string>
+    <string name="card_weather">Weather</string>
+    <string name="customize_panel_landscape">Widgets replace the clock or weather in portrait only.</string>
+    <string name="card_hidden">Hidden</string>
+    <string name="customize_projection">Shortcuts row</string>
+    <string name="customize_hint_no_split">One card is hidden, so the other fills the column.</string>
+    <string name="update_title">Version %1$s is available</string>
+    <string name="update_install">Update now</string>
+    <string name="update_later">Later</string>
+    <string name="update_skip">Skip this version</string>
+    <string name="update_no_notes">A newer version is available.</string>
+    <string name="update_downloading">Downloading the update…</string>
+    <string name="update_allow_title">One-time permission</string>
+    <string name="update_allow_body">Android needs your permission before Dashline can install an update. Turn on &quot;Allow from this source&quot;, then start the update again.</string>
+    <string name="update_allow_open">Open settings</string>
+    <string name="update_failed_title">Couldn\'t install the update</string>
+    <string name="update_failed_body">The download or the installer didn\'t start. You can get the APK from the release page instead.</string>
+    <string name="update_open_page">Open release page</string>
+    <string name="update_no_browser">No browser on this unit — download the APK on a phone or PC instead.</string>
+    <string name="section_about">ABOUT</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_version_value">%1$s (%2$d)</string>
+    <string name="settings_check_updates">Check for updates</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_up_to_date">Up to date</string>
+    <string name="update_never_checked">Never checked</string>
+    <string name="update_checked_recently">Checked just now</string>
+    <string name="update_checked_hours">Checked %1$dh ago</string>
+    <string name="update_checked_days">Checked %1$dd ago</string>
+    <string name="widget_unavailable">Widget unavailable</string>
+    <string name="widget_add_failed_title">Couldn\'t add the widget</string>
+    <string name="widget_fail_permission">Android asks permission for each widget, and it was declined. Try again and choose Create.</string>
+    <string name="widget_fail_unsupported">This unit\'s Android build has no widget permission screen, so widgets can\'t be added on it.</string>
+    <string name="widget_fail_slot">Android wouldn\'t reserve a slot for the widget. Restarting the unit usually clears this.</string>
+    <string name="widget_fail_setup">%1$s closed its own setup screen before finishing, so nothing was added.</string>
+    <string name="widget_fail_bind">%1$s couldn\'t be attached. Its app may have been updating — try again in a moment.</string>
+</resources>

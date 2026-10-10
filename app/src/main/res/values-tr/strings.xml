@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dashline</string>
+
+    <!-- alt sekmeler -->
+    <string name="tab_audio">Ses</string>
+    <string name="tab_phone">Telefon</string>
+    <string name="tab_nav">Navigasyon</string>
+    <string name="tab_apps">Uygulamalar</string>
+    <string name="tab_settings">Ayarlar</string>
+
+    <!-- uygulama çekmecesi -->
+    <string name="all_apps">Tüm uygulamalar</string>
+    <string name="no_apps">Açılabilir uygulama bulunamadı</string>
+    <string name="app_icon">Uygulama simgesi</string>
+    <string name="search_apps">Uygulama ara</string>
+    <string name="frequent">Sık kullanılanlar</string>
+    <string name="hide_app">Çekmeceden gizle</string>
+    <string name="settings_reset_hidden">Gizli uygulamaları sıfırla</string>
+    <string name="couldnt_launch">%1$s açılamadı</string>
+    <string name="hidden_count">%1$d gizli</string>
+
+    <!-- ses kaynağı -->
+    <string name="audio_radio">Radyo</string>
+
+    <!-- medya widget\'ı -->
+    <string name="media_previous">Önceki</string>
+    <string name="media_play_pause">Oynat veya duraklat</string>
+    <string name="media_next">Sonraki</string>
+    <string name="media_nothing_playing">Çalan bir şey yok</string>
+    <string name="media_tap_to_open">Açmak için dokunun</string>
+
+    <!-- kurulum -->
+    <string name="setup_title">Hoş geldiniz</string>
+    <string name="setup_subtitle">Başlatıcınızı ayarlayalım.</string>
+    <string name="setup_choose_phone">Telefon uygulamanızı seçin</string>
+    <string name="setup_choose_nav">Navigasyon uygulamanızı seçin</string>
+    <string name="setup_choose_media">Medya uygulamanızı seçin</string>
+    <string name="setup_done">Bitti</string>
+    <string name="not_set">Ayarlanmadı</string>
+
+    <!-- ayarlar -->
+    <string name="settings_title">Başlatıcı Ayarları</string>
+    <string name="settings_phone_app">Telefon uygulaması</string>
+    <string name="settings_nav_app">Navigasyon uygulaması</string>
+    <string name="settings_radio_app">Radyo uygulaması</string>
+    <string name="settings_media_app">Medya uygulaması (çalan bir şey yokken)</string>
+    <string name="settings_notification_access">Medya bilgisi erişimi</string>
+    <string name="access_enabled">Etkin</string>
+    <string name="access_disabled">Devre dışı — açmak için dokunun</string>
+    <string name="settings_temp_unit">Sıcaklık birimi</string>
+    <string name="unit_celsius">Santigrat (°C)</string>
+    <string name="unit_fahrenheit">Fahrenhayt (°F)</string>
+    <string name="settings_theme">Tema</string>
+    <string name="theme_auto">Otomatik (saate göre)</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="theme_system">Sistemi izle</string>
+    <string name="settings_keep_on">Ekranı açık tut</string>
+    <string name="settings_default_launcher">Varsayılan başlatıcı</string>
+    <string name="on">Açık</string>
+    <string name="off">Kapalı</string>
+    <string name="yes">Evet</string>
+    <string name="set_now">Ayarlanmadı — ayarlamak için dokunun</string>
+
+    <!-- hava durumu -->
+    <string name="weather_unavailable">Hava durumu yok</string>
+    <string name="weather_loading">Hava durumu yükleniyor…</string>
+    <string name="wx_clear">Açık</string>
+    <string name="wx_mainly_clear">Çoğunlukla açık</string>
+    <string name="wx_partly_cloudy">Parçalı bulutlu</string>
+    <string name="wx_overcast">Kapalı</string>
+    <string name="wx_fog">Sisli</string>
+    <string name="wx_drizzle">Çiseleme</string>
+    <string name="wx_rain">Yağmurlu</string>
+    <string name="wx_snow">Karlı</string>
+    <string name="wx_showers">Sağanak</string>
+    <string name="wx_thunderstorm">Gök gürültülü fırtına</string>
+
+    <!-- favori uygulamalar -->
+    <string name="pick_favorite">Favori uygulama seçin</string>
+    <string name="fav_change">Uygulamayı değiştir</string>
+    <string name="fav_remove">Kaldır</string>
+
+    <!-- çeşitli -->
+    <string name="pick_an_app">Uygulama seçin</string>
+    <string name="app_not_found">Uygulama bulunamadı — Ayarlar\'dan birini seçin</string>
+    <string name="now_playing">Şimdi çalıyor</string>
+    <string name="settings_language">Dil</string>
+    <string name="language_system">Sistem varsayılanı</string>
+    <string name="setup_choose_language">Dil</string>
+    <string name="media_enable_access">Medya bilgisi için dokunun</string>
+    <string name="forecast_high_low">%1$s / %2$s</string>
+    <string name="nav_back">Geri</string>
+    <string name="nav_home">Ana ekran</string>
+    <string name="setup_permissions">İzinler</string>
+    <string name="setup_permissions_hint">Bunlar hava durumunu ve çalan müziği göstermek için gerekli.</string>
+    <string name="settings_location_access">Konum erişimi</string>
+    <string name="access_granted">Verildi</string>
+    <string name="access_needed">Vermek için dokunun</string>
+    <string name="section_general">GENEL</string>
+    <string name="section_apps">VARSAYILAN UYGULAMALAR</string>
+    <string name="section_access">İZİNLER</string>
+    <string name="section_drawer">UYGULAMA ÇEKMECESİ</string>
+    <string name="settings_gradient">Renk teması</string>
+    <string name="section_appearance">GÖRÜNÜM</string>
+    <string name="gradient_preview_hint">Seçilen renklerin önizlemesi</string>
+    <string name="gradient_midnight">Gece Yarısı</string>
+    <string name="gradient_ocean">Okyanus</string>
+    <string name="gradient_sunset">Gün Batımı</string>
+    <string name="gradient_forest">Orman</string>
+    <string name="gradient_violet">Menekşe</string>
+    <string name="gradient_crimson">Kızıl</string>
+    <string name="gradient_graphite">Grafit</string>
+    <string name="settings_android_auto_app">Android Auto uygulaması</string>
+    <string name="settings_carplay_app">CarPlay uygulaması</string>
+    <string name="shortcut_android_auto">Android Auto</string>
+    <string name="shortcut_carplay">CarPlay</string>
+    <string name="volume_mute">Sesi kapat veya aç</string>
+    <string name="settings_tabs">Alt sekmeler</string>
+    <string name="section_tabs">SEKMELER</string>
+    <string name="tabs_hint">Alt çubuğu yeniden sıralayın veya teypinizde gerekmeyen sekmeleri gizleyin.</string>
+    <string name="tabs_count">%1$d gösteriliyor</string>
+    <string name="tabs_reset">Varsayılana sıfırla</string>
+    <string name="tab_move_up">Yukarı taşı</string>
+    <string name="tab_move_down">Aşağı taşı</string>
+    <string name="tab_toggle_visible">Göster veya gizle</string>
+    <string name="settings_clock_style">Saat stili</string>
+    <string name="clock_digital">Dijital</string>
+    <string name="clock_analog">Analog</string>
+    <string name="clock_minimal">Sade</string>
+    <string name="settings_chrono">Kronometre</string>
+    <string name="chrono_start_stop">Başlat veya durdur</string>
+    <string name="chrono_reset">Sıfırla</string>
+    <string name="settings_second_card">İkinci kart</string>
+    <string name="second_phone">Telefon</string>
+    <string name="second_shortcuts">Uygulama kısayolları</string>
+    <string name="settings_customize">Ana ekranı özelleştir</string>
+    <string name="customize_hint">Kartları yeniden boyutlandırmak için aradaki çubuğu sürükleyin.</string>
+    <string name="customize_hint_split">Medya kartı: sütunun %%%1$d\'i. Boyutlandırmak için çubuğu sürükleyin.</string>
+    <string name="customize_swap">Yer değiştir</string>
+    <string name="customize_second_card">İkinci kart</string>
+    <string name="customize_reset">Sıfırla</string>
+    <string name="customize_pick_widget">Widget seçin</string>
+    <string name="customize_sample_date">1 Ocak Pazartesi</string>
+    <string name="customize_sample_track">Örnek Parça</string>
+    <string name="customize_sample_artist">Sanatçı</string>
+    <string name="second_widget">Widget</string>
+    <string name="customize_hint_portrait">Dikey modda kartlar alt alta dizilir, boyutlar yatay modda ayarlanır.</string>
+    <string name="widget_none">Bu cihazda kullanılabilir widget yok</string>
+    <string name="drawer_page">Sayfa %1$d / %2$d</string>
+    <string name="customize_media_card">Medya kartı</string>
+    <string name="card_media_player">Medya oynatıcı</string>
+    <string name="widget_add">Widget ekle</string>
+    <string name="widget_change">Değiştir</string>
+    <string name="widget_remove">Kaldır</string>
+    <string name="widget_full">Bir karta en fazla %1$d widget sığar</string>
+    <string name="customize_favorites">Favoriler</string>
+    <string name="favorites_slots">Yuva sayısı</string>
+    <string name="favorites_size">Simge boyutu</string>
+    <string name="size_small">Küçük</string>
+    <string name="size_medium">Orta</string>
+    <string name="size_large">Büyük</string>
+    <string name="favorites_option">%1$s: %2$s</string>
+    <string name="customize_clock_panel">Saat paneli</string>
+    <string name="card_clock">Saat</string>
+    <string name="card_weather">Hava durumu</string>
+    <string name="customize_panel_landscape">Widget\'ler saat veya hava durumunun yerini yalnızca dikey modda alır.</string>
+    <string name="card_hidden">Gizli</string>
+    <string name="customize_projection">Kısayol satırı</string>
+    <string name="customize_hint_no_split">Bir kart gizli olduğundan diğeri sütunu tamamen kaplar.</string>
+    <string name="update_title">%1$s sürümü yayınlandı</string>
+    <string name="update_install">Şimdi güncelle</string>
+    <string name="update_later">Daha sonra</string>
+    <string name="update_skip">Bu sürümü atla</string>
+    <string name="update_no_notes">Daha yeni bir sürüm mevcut.</string>
+    <string name="update_downloading">Güncelleme indiriliyor…</string>
+    <string name="update_allow_title">Tek seferlik izin</string>
+    <string name="update_allow_body">Dashline\'ın güncellemeyi kurabilmesi için Android izin istiyor. &quot;Bu kaynağa izin ver&quot; seçeneğini açın, sonra güncellemeyi yeniden başlatın.</string>
+    <string name="update_allow_open">Ayarları aç</string>
+    <string name="update_failed_title">Güncelleme kurulamadı</string>
+    <string name="update_failed_body">İndirme veya kurulum başlamadı. APK\'yı sürüm sayfasından da indirebilirsiniz.</string>
+    <string name="update_open_page">Sürüm sayfasını aç</string>
+    <string name="update_no_browser">Bu cihazda tarayıcı yok — APK\'yı telefondan veya bilgisayardan indirin.</string>
+    <string name="section_about">HAKKINDA</string>
+    <string name="settings_version">Sürüm</string>
+    <string name="settings_version_value">%1$s (%2$d)</string>
+    <string name="settings_check_updates">Güncellemeleri denetle</string>
+    <string name="update_checking">Denetleniyor…</string>
+    <string name="update_up_to_date">Güncel</string>
+    <string name="update_never_checked">Hiç denetlenmedi</string>
+    <string name="update_checked_recently">Az önce denetlendi</string>
+    <string name="update_checked_hours">%1$d saat önce denetlendi</string>
+    <string name="update_checked_days">%1$d gün önce denetlendi</string>
+    <string name="widget_unavailable">Widget kullanılamıyor</string>
+    <string name="widget_add_failed_title">Widget eklenemedi</string>
+    <string name="widget_fail_permission">Android her widget için izin ister ve izin verilmedi. Tekrar deneyin ve Oluştur\'u seçin.</string>
+    <string name="widget_fail_unsupported">Bu cihazın Android sürümünde widget izin ekranı yok, bu yüzden widget eklenemiyor.</string>
+    <string name="widget_fail_slot">Android widget için yer ayıramadı. Cihazı yeniden başlatmak genelde bunu çözer.</string>
+    <string name="widget_fail_setup">%1$s kendi kurulum ekranını tamamlamadan kapattı, bu yüzden hiçbir şey eklenmedi.</string>
+    <string name="widget_fail_bind">%1$s eklenemedi. Uygulaması güncelleniyor olabilir — birazdan tekrar deneyin.</string>
+</resources>
