@@ -28,10 +28,10 @@ val hasReleaseSigning = releaseStoreFile != null && releaseStorePassword != null
 // local builds fall back to these defaults.
 val appVersionName = (project.findProperty("appVersionName") as String?) ?: "0.1.0"
 val appVersionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 1
-val navigationProxyUrl = (project.findProperty("trolleyNavigationProxyUrl") as? String)
-    ?: System.getenv("TROLLEY_NAVIGATION_PROXY_URL")
+val travelApiBaseUrl = (project.findProperty("trolleyTravelApiBaseUrl") as? String)
+    ?: System.getenv("TROLLEY_TRAVEL_API_BASE_URL")
     ?: ""
-val escapedNavigationProxyUrl = navigationProxyUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+val escapedTravelApiBaseUrl = travelApiBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")
 
 android {
     namespace = "com.dashline.launcher"
@@ -46,7 +46,7 @@ android {
         targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersionName
-        buildConfigField("String", "NAVIGATION_PROXY_URL", "\"$escapedNavigationProxyUrl\"")
+        buildConfigField("String", "TRAVEL_API_BASE_URL", "\"$escapedTravelApiBaseUrl\"")
 
         // Let the support library render vector drawables on pre-Lollipop devices.
         vectorDrawables.useSupportLibrary = true
@@ -133,7 +133,8 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.4.2")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    implementation("org.mapsforge:mapsforge-map-android:0.21.0")
+    testImplementation("junit:junit:4.13.2")
     // Pulled in by appcompat anyway; declared so the runtime icon tinting can
     // reference VectorDrawableCompat directly. 1.1.0 still supports minSdk 14.
     implementation("androidx.vectordrawable:vectordrawable:1.1.0")

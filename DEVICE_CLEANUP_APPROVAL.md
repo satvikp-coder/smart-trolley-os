@@ -1,9 +1,9 @@
 # Phase 4 device cleanup approval proposal
 
-**No package changes have been made.** ADB checks in this phase were read-only.
-Current device storage read: `/data` 2.4 GiB free; `/sdcard` 8.2 GiB free.
-The earlier 639 MiB `/data` value is no longer current. Launcher3 remains the
-recovery launcher and remains selected as HOME.
+**No package changes have been made.** The last connected-device audit was
+read-only and reported `/data` 2.4 GiB free and `/sdcard` 8.2 GiB free, but ADB
+currently sees no device, so those figures are not freshly verified. Phase 3
+reported Launcher3 installed and selected as HOME; no HOME change was made.
 
 ## Current recheck — none of the six candidates found
 

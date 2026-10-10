@@ -1,26 +1,47 @@
-# Offline map implementation status
+# Offline map implementation
 
-## Status: NOT IMPLEMENTED / BLOCKED ON MAP DATA
+## Status
 
-Phase 3 osmdroid MapView remains intact so the known-working dashboard and
-coordinate pin workflow are not regressed. Its online OSM tiles failed TLS on
-this API 19 tablet. Phase 4 verified that Mapsforge is an appropriate candidate:
-the official project describes offline vector `.map` rendering and API 10+
-support; artifact `org.mapsforge:mapsforge-map-android:0.21.0` resolves from
-Maven Central. The artifact was evaluated, not integrated into the app. No claim
-of offline map rendering is made. [Mapsforge](https://github.com/mapsforge/mapsforge),
-[0.21 changelog](https://github.com/mapsforge/mapsforge/blob/0.21.0/docs/Changelog.md)
+**IMPLEMENTED BUT NOT DEVICE-TESTED.** The app now uses Mapsforge 0.21.0 for
+vector maps and no longer instantiates osmdroid. The renderer checks a local
+Mapsforge `.map` file, validates its header and geographic bounds, renders
+vector tiles with pan/zoom, supports tap-to-pin, saved destination/current
+location markers, route overlays, scale bar, viewport persistence, and cleanup
+on page changes. Missing or invalid files produce an in-app explanation.
 
-BBBike supports Mapsforge output, but requires a custom extract request for
-Ahmedabad. Its current directory contains other regional maps but no verified
-Ahmedabad prebuilt file. Download attempt from this Windows environment failed
-certificate validation (`SEC_E_UNTRUSTED_ROOT`). TLS validation was not bypassed;
-no map file was downloaded or sent to the tablet. The tablet has 8.2 GiB free on
-`/sdcard`, but no space was consumed. [BBBike formats and service help](https://extract.bbbike.org/extract.html)
+Map location on Android 4.4:
+`/sdcard/Android/data/com.dashline.launcher/files/maps/`
+(app-specific external files; internal `files/maps` is used if external storage
+is unavailable). Put one `.map` file in this directory. Dataset is deliberately
+not bundled in the APK.
 
-Next safe step: obtain a small Ahmedabad extract through BBBike's supported
-Mapsforge request process, verify its `.map` format and checksum, then integrate
-and test Mapsforge 0.21 on API 19 before replacing osmdroid. User approval is
-required before transferring the dataset to the tablet. Mapsforge is LGPL-3.0;
-OpenStreetMap data attribution and ODbL obligations apply.
+## Verified dataset
 
+BBBike's regional Mapsforge OSM extract was downloaded from its western-zone
+directory using normal Windows certificate validation:
+<https://download3.bbbike.org/osm/region/asia/india/western-zone/>. The resulting
+file is at `C:\Users\satvi\Documents\SmartTrolleyOS\maps\bbbike-extract\western-zone-mapsforge-osm\western-zone.map`.
+It is 183,975,384 bytes (about 175.5 MiB), SHA-256
+`4C68952FFBE2E61632F481EC0272C99A5D94E084B7D270052B6E499A5AF51291`. Its
+Mapsforge reader header is valid; bounds are approximately 14.38929–24.71756 N,
+67.67457–80.91362 E and include Ahmedabad (23.0225, 72.5714). Generated
+2026-10-07 per the extract README. The archive's `CHECKSUM.txt` MD5 was also
+verified after extraction. It is a broad western India regional map, not a
+small city-only file.
+
+The official Mapsforge western-zone map is a larger fallback (213,018,151
+bytes); it was not selected. No dataset has been transferred to the tablet.
+The laptop map occupies storage outside the repository and APK.
+
+## Acquisition note and limits
+
+The initial `download.bbbike.org` route failed Windows Schannel trust with
+`SEC_E_UNTRUSTED_ROOT`; certificate validation was not disabled. The alternate
+BBBike `download3` directory/data host and official Mapsforge site validated
+normally, so a legitimate extract was obtained. The APK build verifies
+integration/compilation, not visible map rendering on the physical tablet.
+Dataset transfer and Phase 4 APK installation await explicit approval.
+
+Attribution: “© OpenStreetMap contributors” is shown in the map screen. See
+`MAP_DATA_SOURCE_AND_LICENSE.md` for ODbL/source details. The app uses
+Mapsforge's bundled default render theme, not online tile downloads.

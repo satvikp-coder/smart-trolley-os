@@ -24,8 +24,8 @@ Tools 35 or newer is required by this project configuration.
   Trolley changes.
 - Smart Trolley build: `:app:assembleLegacyDebug` succeeds; the APK declares
   `minSdk 19`, landscape HOME, and label `Smart Trolley OS`.
-- Unit tests: `:app:testLegacyDebugUnitTest` reports `NO-SOURCE`; this repository
-  has no unit-test source set.
+- Unit tests: `:app:testLegacyDebugUnitTest` passes 2 Android unit tests; backend
+  `python -m pytest -q` passes 7 tests using mocked/provider-free cases.
 - Lint: `:app:lintLegacyDebug` completes. It reports inherited issues in the
   unused Dashline screens and widgets; the new `TrolleyHomeActivity` has no lint
   errors. The legacy issues include API 21 calls and old back-handler patterns.
@@ -38,11 +38,12 @@ Tools 35 or newer is required by this project configuration.
 
 - Landscape HOME dashboard with large touch controls, clock, tablet battery and
   charging state, Wi-Fi state, and an HTTPS internet connectivity check.
-- Navigation is embedded with osmdroid, coordinate markers, saved/recent
-  destinations, and an optional HTTPS routing/geocoding proxy. On the tested
-  API 19 tablet OSM basemap tile requests currently fail TLS negotiation; no
-  proxy or offline region map is bundled. It does not provide indoor maps or
-  indoor positioning.
+- Navigation is embedded with Mapsforge 0.21, local `.map` discovery,
+  coordinates, saved destinations, markers and route overlay. A verified
+  external western-zone dataset includes Ahmedabad, but has not been transferred
+  or rendered on the tablet. Online geocoding/routing require the configured
+  HTTPS backend and provider credentials. Indoor maps/positioning are not
+  implemented.
 - Railway and airport forms retain user-entered details through screen changes
   and activity recreation. Saved results are explicitly marked as manual.
 - Demonstration buttons show sample records labeled `SIMULATION · NOT LIVE`.
@@ -53,10 +54,14 @@ Tools 35 or newer is required by this project configuration.
 
 ## Data and limitations
 
-There is no live train or flight feed. NTES is linked as the official Indian
-Railways information service at <https://enquiry.indianrail.gov.in/ntes/>. The
-app does not scrape NTES or claim a private API. Manual entries and simulations
-are kept distinct from live data.
+No live train feed or timetable is configured. NTES is linked as the official
+Indian Railways information service at <https://enquiry.indianrail.gov.in/ntes/>.
+The app does not scrape NTES or claim a private API. Railway UI supports manual
+search strings only. Offline airport reference lookup includes four static
+records (AMD/BOM/DEL/BLR), sourced from OurAirports public-domain data; they are
+not flight schedules. The Aviationstack adapter has mock tests, but no live
+key/backend is configured. Manual, reference, cache and live categories remain
+distinct.
 
 FlightAware [AeroAPI](https://www.flightaware.com/commercial/aeroapi/) is a
 possible authorized flight data provider, subject to its current account, API
@@ -78,7 +83,8 @@ default HOME app.
 
 ## Install and select the launcher
 
-Do not install this build until you are ready to prepare the tablet. Confirm
+This recovery APK and map have not been installed/transferred. Obtain explicit
+approval before copying the ~176 MiB map or installing the APK. Confirm
 that USB debugging and the stock launcher work first, and leave adequate free
 space on `/data` for installation and updates.
 

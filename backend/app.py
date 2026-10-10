@@ -7,20 +7,22 @@ from __future__ import annotations
 
 import os
 import time
-from collections import OrderedDict, defaultdict, deque
+from collections import OrderedDict, deque
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import quote
 
 import httpx
+import json
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 app = FastAPI(title="Smart Trolley Travel API", version="0.1.0")
 TTL = max(0, int(os.getenv("DATA_CACHE_TTL_SECONDS", "120")))
 MAX_CACHE = max(1, int(os.getenv("MAX_CACHE_ENTRIES", "256")))
+MAX_PROVIDER_RESPONSE_BYTES = 2 * 1024 * 1024
 cache: OrderedDict[str, tuple[float, dict[str, Any], datetime]] = OrderedDict()
-requests_by_ip: dict[str, deque[float]] = defaultdict(deque)
+requests_by_ip: OrderedDict[str, deque[float]] = OrderedDict()
 
 
 class Envelope(BaseModel):
@@ -37,7 +39,11 @@ class Envelope(BaseModel):
 
 def rate_limit(request: Request) -> None:
     now = time.monotonic()
-    bucket = requests_by_ip[request.client.host if request.client else "unknown"]
+    address = request.client.host if request.client else "unknown"
+    bucket = requests_by_ip.setdefault(address, deque())
+    requests_by_ip.move_to_end(address)
+    while len(requests_by_ip) > 1024:
+        requests_by_ip.popitem(last=False)
     while bucket and now - bucket[0] >= 60:
         bucket.popleft()
     if len(bucket) >= 30:
@@ -53,9 +59,16 @@ def require_client_token(authorization: str | None) -> None:
 
 async def get_json(url: str, params: dict[str, str], headers: dict[str, str] | None = None) -> dict[str, Any]:
     async with httpx.AsyncClient(timeout=httpx.Timeout(8.0, connect=4.0)) as client:
-        response = await client.get(url, params=params, headers=headers)
-        response.raise_for_status()
-        payload = response.json()
+        chunks: list[bytes] = []
+        size = 0
+        async with client.stream("GET", url, params=params, headers=headers) as response:
+            response.raise_for_status()
+            async for chunk in response.aiter_bytes():
+                size += len(chunk)
+                if size > MAX_PROVIDER_RESPONSE_BYTES:
+                    raise ValueError("Provider response exceeds size limit")
+                chunks.append(chunk)
+        payload = json.loads(b"".join(chunks))
         if not isinstance(payload, dict):
             raise ValueError("Provider returned an invalid response")
         return payload
@@ -107,7 +120,7 @@ async def geocode(q: str = Query(min_length=2, max_length=160)) -> dict[str, Any
         records = [{"name": h.get("name"), "country": h.get("country"), "latitude": (h.get("point") or {}).get("lat"),
                     "longitude": (h.get("point") or {}).get("lng")} for h in hits if isinstance(h, dict)]
         freshness = "CACHED" if cache_status == "HIT" else "LIVE"
-        return Envelope(provider="GraphHopper", source_timestamp=fetched_at, retrieved_at=datetime.now(timezone.utc), freshness=freshness,
+        return Envelope(provider="GraphHopper", retrieved_at=datetime.now(timezone.utc), freshness=freshness,
                         cache_status=cache_status, category=freshness, records=records).model_dump(mode="json")
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(502, "Navigation provider unavailable") from exc
@@ -172,7 +185,7 @@ async def airports(q: str = Query(min_length=2, max_length=100)) -> dict[str, An
                     "city": r.get("city_iata_code"), "country": r.get("country_name"),
                     "latitude": r.get("latitude"), "longitude": r.get("longitude")} for r in rows if isinstance(r, dict)]
         freshness = "CACHED" if cache_status == "HIT" else "LIVE"
-        return Envelope(provider="Aviationstack", source_timestamp=fetched_at, retrieved_at=datetime.now(timezone.utc), freshness=freshness,
+        return Envelope(provider="Aviationstack", retrieved_at=datetime.now(timezone.utc), freshness=freshness,
                         cache_status=cache_status, category=freshness, records=records).model_dump(mode="json")
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(502, "Airport provider unavailable") from exc
@@ -193,13 +206,13 @@ async def airport_flights(airport_code: str, direction: str = Query(default="arr
         for flight in data.get("data", []):
             if not isinstance(flight, dict): continue
             airline, details, departure, arrival = flight.get("airline") or {}, flight.get("flight") or {}, flight.get("departure") or {}, flight.get("arrival") or {}
-            records.append({"flight_number": details.get("iata") or details.get("number"), "airline": airline.get("name"),
+            records.append({key: value for key, value in {"flight_number": details.get("iata") or details.get("number"), "airline": airline.get("name"),
                 "status": flight.get("flight_status"), "scheduled_departure": departure.get("scheduled"),
                 "estimated_departure": departure.get("estimated"), "scheduled_arrival": arrival.get("scheduled"),
                 "estimated_arrival": arrival.get("estimated"), "terminal": departure.get("terminal") if direction == "departures" else arrival.get("terminal"),
-                "gate": departure.get("gate") if direction == "departures" else arrival.get("gate")})
+                "gate": departure.get("gate") if direction == "departures" else arrival.get("gate")}.items() if value is not None})
         freshness = "CACHED" if cache_status == "HIT" else "LIVE"
-        return Envelope(provider="Aviationstack", source_timestamp=fetched_at, retrieved_at=datetime.now(timezone.utc), freshness=freshness,
+        return Envelope(provider="Aviationstack", retrieved_at=datetime.now(timezone.utc), freshness=freshness,
             cache_status=cache_status, category=freshness, records=records).model_dump(mode="json")
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(502, "Flight provider unavailable") from exc
@@ -207,5 +220,29 @@ async def airport_flights(airport_code: str, direction: str = Query(default="arr
 
 @app.get("/api/flights/{flight_number}")
 async def flight(flight_number: str) -> dict[str, Any]:
-    return unconfigured("Aviationstack", "Use the airport flight board; individual-flight lookup is not configured")
+    if not flight_number.replace(" ", "").isalnum() or len(flight_number) > 16:
+        raise HTTPException(422, "Invalid flight number")
+    key = os.getenv("AVIATIONSTACK_ACCESS_KEY", "").strip()
+    if not key:
+        return unconfigured("Aviationstack", "Flight provider is not configured")
+    try:
+        data, cache_status, _ = await cached("flight-number:" + flight_number.upper(), lambda: get_json(
+            os.getenv("AVIATIONSTACK_BASE_URL", "https://api.aviationstack.com/v1").rstrip("/") + "/flights",
+            {"access_key": key, "flight_number": flight_number.replace(" ", "").upper(), "limit": "10"}))
+        records = []
+        for row in data.get("data", []):
+            if not isinstance(row, dict):
+                continue
+            airline, details, departure, arrival = row.get("airline") or {}, row.get("flight") or {}, row.get("departure") or {}, row.get("arrival") or {}
+            records.append({key: value for key, value in {"flight_number": details.get("iata") or details.get("number"), "airline": airline.get("name"),
+                "status": row.get("flight_status"), "origin": departure.get("iata"), "destination": arrival.get("iata"),
+                "scheduled_departure": departure.get("scheduled"), "estimated_departure": departure.get("estimated"),
+                "scheduled_arrival": arrival.get("scheduled"), "estimated_arrival": arrival.get("estimated"),
+                "departure_terminal": departure.get("terminal"), "departure_gate": departure.get("gate"),
+                "arrival_terminal": arrival.get("terminal"), "arrival_gate": arrival.get("gate")}.items() if value is not None})
+        freshness = "CACHED" if cache_status == "HIT" else "LIVE"
+        return Envelope(provider="Aviationstack", retrieved_at=datetime.now(timezone.utc), freshness=freshness,
+            cache_status=cache_status, category=freshness, records=records).model_dump(mode="json")
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(502, "Flight provider unavailable") from exc
 

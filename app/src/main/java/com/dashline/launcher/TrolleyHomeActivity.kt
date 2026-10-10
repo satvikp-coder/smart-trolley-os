@@ -39,22 +39,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import org.json.JSONArray
 import org.json.JSONObject
-import org.osmdroid.config.Configuration
-import org.osmdroid.events.MapListener
-import org.osmdroid.events.MapEventsReceiver
-import org.osmdroid.events.ScrollEvent
-import org.osmdroid.events.ZoomEvent
-import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
-import org.osmdroid.tileprovider.tilesource.TileSourcePolicy
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.util.MapTileIndex
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.MapEventsOverlay
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
 import java.net.HttpURLConnection
 import java.net.URL
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -71,7 +57,13 @@ class TrolleyHomeActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val probeExecutor = Executors.newSingleThreadExecutor()
     private val navigationExecutor = Executors.newSingleThreadExecutor()
-    private val navigationProvider = GraphHopperProxyProvider.configured(BuildConfig.NAVIGATION_PROXY_URL)
+    private val navigationProvider: NavigationProvider?
+        get() {
+            val preferences = getSharedPreferences(PREF_TRAVEL_API, Context.MODE_PRIVATE)
+            val base = preferences.getString(KEY_TRAVEL_API_BASE_URL, BuildConfig.TRAVEL_API_BASE_URL).orEmpty()
+            val token = preferences.getString(KEY_TRAVEL_API_TOKEN, null)
+            return GraphHopperProxyProvider.configured(base, token)
+        }
     private val formValues = mutableMapOf<String, String>()
     private val fields = mutableMapOf<String, EditText>()
     private lateinit var content: LinearLayout
@@ -89,15 +81,14 @@ class TrolleyHomeActivity : AppCompatActivity() {
     private var formRow: LinearLayout? = null
     private var formColumn = 0
     private var formWide = false
-    private var mapView: MapView? = null
-    private var destinationMarker: Marker? = null
-    private var currentLocationMarker: Marker? = null
-    private var routePolyline: Polyline? = null
-    private var currentLocation: GeoPoint? = null
+    private var mapView: OfflineMapSurface? = null
+    private var currentLocation: TravelCoordinate? = null
     private var locationRequested = false
     private var navigationStatus: TextView? = null
     private var navigationResults: LinearLayout? = null
     private var navigationRouteSummary: TextView? = null
+    private var travelLookupResults: LinearLayout? = null
+    private val travelReferenceDatabase by lazy { TravelReferenceDatabase(this) }
 
     private val locationManager by lazy {
         getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -105,8 +96,8 @@ class TrolleyHomeActivity : AppCompatActivity() {
 
     private val gpsListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            currentLocation = location.toGeoPoint()
-            updateCurrentLocationMarker(location)
+            currentLocation = location.toTravelCoordinate()
+            updateCurrentLocationMarker(location, false)
             navigationStatus?.text = "GPS fix · accuracy ±${location.accuracy.toInt()} m"
         }
 
@@ -165,7 +156,6 @@ class TrolleyHomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         applyImmersiveMode()
-        mapView?.onResume()
         if (locationRequested) startGpsUpdates()
         handler.removeCallbacks(clockTicker)
         handler.post(clockTicker)
@@ -173,7 +163,6 @@ class TrolleyHomeActivity : AppCompatActivity() {
 
     override fun onPause() {
         stopGpsUpdates()
-        mapView?.onPause()
         super.onPause()
     }
 
@@ -307,6 +296,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
             else -> "Your journey starts here"
         }
         fields.clear()
+        travelLookupResults = null
         cleanupNavigationMap()
         content.removeAllViews()
         val scroll = ScrollView(this).apply { isFillViewport = true }
@@ -373,7 +363,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
         addText(body, "Navigation stays inside Smart Trolley OS", white, 21f, true, dp(8))
         val map = createNavigationMap()
         body.addView(map, LinearLayout.LayoutParams(-1, dp(226)).apply { bottomMargin = dp(3) })
-        map.setOnTouchListener { view, event ->
+        map.mapView?.setOnTouchListener { view, event ->
             when (event.actionMasked) {
                 android.view.MotionEvent.ACTION_DOWN,
                 android.view.MotionEvent.ACTION_MOVE -> view.parent?.requestDisallowInterceptTouchEvent(true)
@@ -382,16 +372,12 @@ class TrolleyHomeActivity : AppCompatActivity() {
             }
             false
         }
-        addText(body, "© OpenStreetMap contributors", muted, 11f, false, dp(6), gravity = Gravity.END)
+        addText(body, "© OpenStreetMap contributors · ODbL", muted, 11f, false, dp(6), gravity = Gravity.END)
 
         val status = TextView(this).apply {
             setTextColor(muted)
             textSize = 13f
-            text = if (hasNetworkConnection()) {
-                "Map tiles load on demand; a connection is required for uncached areas."
-            } else {
-                "Offline · showing any cached tiles; no regional map is installed."
-            }
+            text = map.mapDescription
         }
         navigationStatus = status
         body.addView(status, LinearLayout.LayoutParams(-1, dp(32)))
@@ -434,90 +420,24 @@ class TrolleyHomeActivity : AppCompatActivity() {
         val savedLon = formValues[KEY_DESTINATION_LON]?.toDoubleOrNull()
         if (savedLat != null && savedLon != null && GraphHopperProxyProvider.validCoordinates(savedLat, savedLon)) {
             updateDestinationMarker(
-                NavigationPlace(formValues[KEY_DESTINATION_NAME] ?: "Selected destination", GeoPoint(savedLat, savedLon)),
+                NavigationPlace(formValues[KEY_DESTINATION_NAME] ?: "Selected destination", TravelCoordinate(savedLat, savedLon)),
                 centerMap = false
             )
         }
     }
 
-    private fun createNavigationMap(): MapView {
-        configureMapCache()
-        val map = MapView(this).apply {
-            setTileSource(openStreetMapTileSource())
-            setMultiTouchControls(true)
-            setBuiltInZoomControls(true)
-            val centerLatitude = formValues[KEY_MAP_LAT]?.toDoubleOrNull() ?: DEFAULT_MAP_LATITUDE
-            val centerLongitude = formValues[KEY_MAP_LON]?.toDoubleOrNull() ?: DEFAULT_MAP_LONGITUDE
-            controller.setZoom(formValues[KEY_MAP_ZOOM]?.toDoubleOrNull() ?: DEFAULT_MAP_ZOOM)
-            controller.setCenter(GeoPoint(centerLatitude, centerLongitude))
-        }
-        mapView = map
-        map.overlays.add(MapEventsOverlay(object : MapEventsReceiver {
-            override fun singleTapConfirmedHelper(point: GeoPoint): Boolean {
-                val label = String.format(Locale.getDefault(), "Pinned %.5f, %.5f", point.latitude, point.longitude)
-                formValues[KEY_DESTINATION_QUERY] = "${point.latitude}, ${point.longitude}"
-                fields[KEY_DESTINATION_QUERY]?.setText(formValues[KEY_DESTINATION_QUERY])
-                setDestination(NavigationPlace(label, point), true)
-                return true
-            }
-
-            override fun longPressHelper(point: GeoPoint): Boolean = false
-        }))
-        map.addMapListener(object : MapListener {
-            override fun onScroll(event: ScrollEvent): Boolean {
-                saveMapViewport()
-                return false
-            }
-
-            override fun onZoom(event: ZoomEvent): Boolean {
-                saveMapViewport()
-                return false
-            }
-        })
-        return map
-    }
-
-    private fun configureMapCache() {
-        val base = File(filesDir, "navigation-map")
-        val tiles = File(base, "tiles")
-        base.mkdirs()
-        tiles.mkdirs()
-        Configuration.getInstance().apply {
-            setUserAgentValue("com.dashline.launcher/0.2.0 (Smart Trolley OS)")
-            setOsmdroidBasePath(base)
-            setOsmdroidTileCache(tiles)
-            setCacheMapTileCount(24.toShort())
-            setTileDownloadThreads(1.toShort())
-            setTileFileSystemThreads(1.toShort())
-            setTileDownloadMaxQueueSize(20.toShort())
-            setTileFileSystemMaxQueueSize(20.toShort())
-            setTileFileSystemCacheMaxBytes(32L * 1024L * 1024L)
-            setTileFileSystemCacheTrimBytes(24L * 1024L * 1024L)
-            setGpsWaitTime(5000L)
-        }
-    }
-
-    private fun openStreetMapTileSource(): OnlineTileSourceBase = object : OnlineTileSourceBase(
-        "OpenStreetMap",
-        2,
-        19,
-        256,
-        ".png",
-        arrayOf("https://tile.openstreetmap.org/"),
-        "© OpenStreetMap contributors",
-        TileSourcePolicy(
-            1,
-            TileSourcePolicy.FLAG_NO_BULK or
-                TileSourcePolicy.FLAG_NO_PREVENTIVE or
-                TileSourcePolicy.FLAG_USER_AGENT_MEANINGFUL
+    private fun createNavigationMap(): OfflineMapSurface {
+        val center = TravelCoordinate(
+            formValues[KEY_MAP_LAT]?.toDoubleOrNull() ?: DEFAULT_MAP_LATITUDE,
+            formValues[KEY_MAP_LON]?.toDoubleOrNull() ?: DEFAULT_MAP_LONGITUDE
         )
-    ) {
-        override fun getTileURLString(mapTileIndex: Long): String {
-            val zoom = MapTileIndex.getZoom(mapTileIndex)
-            val x = MapTileIndex.getX(mapTileIndex)
-            val y = MapTileIndex.getY(mapTileIndex)
-            return "https://tile.openstreetmap.org/$zoom/$x/$y.png"
-        }
+        val zoom = formValues[KEY_MAP_ZOOM]?.toDoubleOrNull() ?: DEFAULT_MAP_ZOOM
+        return OfflineMapSurface(this, center, zoom) { point ->
+            val label = String.format(Locale.getDefault(), "Pinned %.5f, %.5f", point.latitude, point.longitude)
+            formValues[KEY_DESTINATION_QUERY] = "${point.latitude}, ${point.longitude}"
+            fields[KEY_DESTINATION_QUERY]?.setText(formValues[KEY_DESTINATION_QUERY])
+            setDestination(NavigationPlace(label, point), true)
+        }.also { mapView = it }
     }
 
     private fun searchDestination(query: String) {
@@ -566,13 +486,13 @@ class TrolleyHomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun parseCoordinates(query: String): GeoPoint? {
+    private fun parseCoordinates(query: String): TravelCoordinate? {
         val parts = query.split(',', ' ', '\t').filter { it.isNotBlank() }
         if (parts.size != 2) return null
         val latitude = parts[0].toDoubleOrNull() ?: return null
         val longitude = parts[1].toDoubleOrNull() ?: return null
         if (!GraphHopperProxyProvider.validCoordinates(latitude, longitude)) return null
-        return GeoPoint(latitude, longitude)
+        return TravelCoordinate(latitude, longitude)
     }
 
     private fun setDestination(place: NavigationPlace, addToRecent: Boolean) {
@@ -581,8 +501,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
         formValues[KEY_DESTINATION_LON] = place.point.longitude.toString()
         fields[KEY_DESTINATION_QUERY]?.setText("${place.point.latitude}, ${place.point.longitude}")
         updateDestinationMarker(place)
-        routePolyline?.let { mapView?.overlays?.remove(it) }
-        routePolyline = null
+        mapView?.clearRoute()
         navigationRouteSummary?.text = "Destination selected; no route has been calculated."
         formValues.remove(KEY_ROUTE_SUMMARY)
         navigationStatus?.text = "Destination marker placed."
@@ -590,17 +509,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
     }
 
     private fun updateDestinationMarker(place: NavigationPlace, centerMap: Boolean = true) {
-        val map = mapView ?: return
-        destinationMarker?.let { map.overlays.remove(it) }
-        val marker = Marker(map).apply {
-            position = place.point
-            title = place.name
-            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        }
-        destinationMarker = marker
-        map.overlays.add(marker)
-        if (centerMap) map.controller.animateTo(place.point)
-        map.invalidate()
+        mapView?.showDestination(place.point, centerMap)
     }
 
     private fun saveSelectedPlace() {
@@ -611,7 +520,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
             navigationStatus?.text = "Pin or search a destination before saving it."
             return
         }
-        addPlaceToList(PREF_SAVED_PLACES, NavigationPlace(name, GeoPoint(latitude, longitude)), MAX_SAVED_PLACES)
+        addPlaceToList(PREF_SAVED_PLACES, NavigationPlace(name, TravelCoordinate(latitude, longitude)), MAX_SAVED_PLACES)
         navigationStatus?.text = "Destination saved on this tablet."
         showPage(PAGE_NAV)
     }
@@ -644,7 +553,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
                 val latitude = value.optDouble("lat", Double.NaN)
                 val longitude = value.optDouble("lon", Double.NaN)
                 if (!GraphHopperProxyProvider.validCoordinates(latitude, longitude)) return@mapNotNull null
-                NavigationPlace(value.optString("name", "Saved location"), GeoPoint(latitude, longitude))
+                NavigationPlace(value.optString("name", "Saved location"), TravelCoordinate(latitude, longitude))
             }
         } catch (_: Exception) {
             emptyList()
@@ -682,7 +591,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
             }
             val lastKnown = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             if (lastKnown != null) {
-                currentLocation = lastKnown.toGeoPoint()
+                currentLocation = lastKnown.toTravelCoordinate()
                 updateCurrentLocationMarker(lastKnown)
                 navigationStatus?.text = "Last known GPS fix · accuracy ±${lastKnown.accuracy.toInt()} m; waiting for an update."
             } else {
@@ -703,18 +612,8 @@ class TrolleyHomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateCurrentLocationMarker(location: Location) {
-        val map = mapView ?: return
-        val point = location.toGeoPoint()
-        currentLocationMarker?.let { map.overlays.remove(it) }
-        currentLocationMarker = Marker(map).apply {
-            position = point
-            title = "Current GPS location · accuracy ±${location.accuracy.toInt()} m"
-            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        }
-        map.overlays.add(currentLocationMarker)
-        map.controller.animateTo(point)
-        map.invalidate()
+    private fun updateCurrentLocationMarker(location: Location, center: Boolean = true) {
+        mapView?.showCurrentLocation(location.toTravelCoordinate(), center)
     }
 
     private fun calculateWalkingRoute() {
@@ -735,21 +634,14 @@ class TrolleyHomeActivity : AppCompatActivity() {
             navigationStatus?.text = "Select a destination marker before calculating a route."
             return
         }
-        val destination = GeoPoint(destinationLat, destinationLon)
+        val destination = TravelCoordinate(destinationLat, destinationLon)
         navigationStatus?.text = "Calculating a walking route…"
         navigationExecutor.execute {
             try {
                 val route = provider.route(origin, destination)
                 handler.post {
                     if (activePage != PAGE_NAV || mapView == null) return@post
-                    routePolyline?.let { mapView?.overlays?.remove(it) }
-                    routePolyline = Polyline(mapView).apply {
-                        setPoints(route.points)
-                        setColor(accent)
-                        setWidth(dp(5).toFloat())
-                    }
-                    mapView?.overlays?.add(routePolyline)
-                    mapView?.invalidate()
+                    mapView?.showRoute(route.points, accent, dp(5).toFloat())
                     val details = buildString {
                         append("REAL ROUTE · ")
                         append(GraphHopperProxyProvider.formatDistance(route.distanceMeters))
@@ -780,21 +672,18 @@ class TrolleyHomeActivity : AppCompatActivity() {
 
     private fun saveMapViewport() {
         val map = mapView ?: return
-        val center = map.mapCenter
+        val center = map.center() ?: return
         formValues[KEY_MAP_LAT] = center.latitude.toString()
         formValues[KEY_MAP_LON] = center.longitude.toString()
-        formValues[KEY_MAP_ZOOM] = map.zoomLevelDouble.toString()
+        formValues[KEY_MAP_ZOOM] = map.zoom()?.toString() ?: DEFAULT_MAP_ZOOM.toString()
     }
 
     private fun cleanupNavigationMap() {
+        saveMapViewport()
         locationRequested = false
         stopGpsUpdates()
-        mapView?.onPause()
-        mapView?.onDetach()
+        mapView?.dispose()
         mapView = null
-        destinationMarker = null
-        currentLocationMarker = null
-        routePolyline = null
         navigationStatus = null
         navigationResults = null
         navigationRouteSummary = null
@@ -804,7 +693,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
     private fun showRail(body: LinearLayout) {
         addText(body, "INDIAN RAILWAYS", accent, 12f, true, dp(6))
         addText(body, "Railway Assistant", white, 24f, true, dp(4))
-        addText(body, "Enter details manually, or check current information on the official NTES service.", muted, 14f, false, dp(12))
+        addText(body, "Live railway boards are blocked pending an authorized data provider.", amber, 14f, false, dp(12))
         val form = card(body)
         beginForm(form)
         val train = input(form, "rail_train", "Train number or name", "Train number or name")
@@ -838,16 +727,30 @@ class TrolleyHomeActivity : AppCompatActivity() {
                 showPage(PAGE_RAIL)
             }
         }, LinearLayout.LayoutParams(0, dp(54), 1f))
+        body.addView(textButton("SAVE STATION AS LOCAL MANUAL REFERENCE", panelLight, white, 13f).apply {
+            setOnClickListener {
+                if (travelReferenceDatabase.saveManualStation(station.text.toString())) {
+                    showMessage("Saved locally as MANUAL reference; no schedule or coordinates implied")
+                } else {
+                    station.error = "Enter a station name or code"
+                }
+            }
+        }, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(6) })
+        body.addView(textButton("SEARCH LOCAL STATIONS / CHECK PROVIDER", accent, ink, 13f).apply {
+            setOnClickListener { lookupRailway(station.text.toString()) }
+        }, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(6) })
+        travelLookupResults = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        body.addView(travelLookupResults, LinearLayout.LayoutParams(-1, -2))
         addSavedResult(body, "rail")
         addExternalButton(body, "OPEN OFFICIAL NTES", "https://enquiry.indianrail.gov.in/ntes/")
         addJourneyNavigationButton(body, "NAVIGATE TO STATION", "rail_station")
-        addNote(body, "No live railway feed is connected. Results entered here are manual; the demo is simulated. NTES is an external official information service and may require a compatible browser and internet access.")
+        addNote(body, "LIVE STATUS: BLOCKED BY PROVIDER ACCESS. Manual station references are local search terms only; they do not imply a timetable, platform, location or live status. Demo records are simulated. Verify platform announcements at the station.")
     }
 
     private fun showAirport(body: LinearLayout) {
         addText(body, "FLIGHT DETAILS", accent, 12f, true, dp(6))
         addText(body, "Airport Assistant", white, 24f, true, dp(4))
-        addText(body, "Record flight information or open an external flight-information service.", muted, 14f, false, dp(12))
+        addText(body, "Offline airport reference search plus optional authorized live provider lookup.", muted, 14f, false, dp(12))
         val form = card(body)
         beginForm(form)
         val airport = input(form, "air_airport", "Airport", "Airport name or code")
@@ -884,11 +787,159 @@ class TrolleyHomeActivity : AppCompatActivity() {
                 showPage(PAGE_AIRPORT)
             }
         }, LinearLayout.LayoutParams(0, dp(54), 1f))
+        body.addView(textButton("SEARCH AIRPORT REFERENCE / LIVE FLIGHTS", accent, ink, 13f).apply {
+            setOnClickListener { lookupAirports(airport.text.toString()) }
+        }, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(6) })
+        travelLookupResults = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        body.addView(travelLookupResults, LinearLayout.LayoutParams(-1, -2))
         addSavedResult(body, "air")
         addFlightLookupButton(body)
         addJourneyNavigationButton(body, "NAVIGATE TO AIRPORT", "air_airport")
-        addNote(body, "No live flight feed is connected. Gate, terminal, time and status are never inferred. FlightAware AeroAPI is a potential authorized provider requiring an account, API key and applicable commercial terms; no credential is embedded in this app.")
+        addNote(body, "Airport references are static OurAirports public-domain data. Live flight status, gate and terminal require configured provider credentials and are never inferred.")
         addNote(body, "Airport terminal maps and indoor positioning are not configured.")
+    }
+
+    private fun lookupRailway(query: String) {
+        val value = query.trim()
+        val results = travelLookupResults ?: return
+        results.removeAllViews()
+        if (value.isEmpty()) {
+            addText(results, "Enter a station name or code.", amber, 14f, false, dp(6))
+            return
+        }
+        addText(results, "LOCAL MANUAL REFERENCES · NOT A TIMETABLE", amber, 12f, true, dp(6))
+        val localStations = travelReferenceDatabase.findManualStations(value)
+        if (localStations.isEmpty()) {
+            addText(results, "No saved local station reference matches.", muted, 13f, false, dp(4))
+        } else {
+            localStations.forEach { station ->
+                results.addView(textButton(station, panelLight, white, 14f).apply {
+                    setOnClickListener { fields["rail_station"]?.setText(station) }
+                }, LinearLayout.LayoutParams(-1, dp(42)).apply { bottomMargin = dp(4) })
+            }
+        }
+        val api = configuredTravelApi()
+        if (api == null) {
+            addText(results, "LIVE: BLOCKED BY PROVIDER ACCESS · no authorized railway provider configured.", amber, 13f, false, dp(8))
+            return
+        }
+        addText(results, "Checking configured railway provider…", muted, 13f, false, dp(6))
+        navigationExecutor.execute {
+            try {
+                val response = api.get("api/railways/stations/search", mapOf("q" to value))
+                handler.post { if (activePage == PAGE_RAIL) renderTravelEnvelope(results, response) }
+            } catch (error: Exception) {
+                handler.post {
+                    if (activePage == PAGE_RAIL) addText(results, "Railway lookup unavailable: ${error.message ?: "connection failed"}", amber, 13f, false, dp(6))
+                }
+            }
+        }
+    }
+
+    private fun lookupAirports(query: String) {
+        val value = query.trim()
+        val results = travelLookupResults ?: return
+        results.removeAllViews()
+        if (value.isEmpty()) {
+            addText(results, "Enter an airport name, city or code.", amber, 14f, false, dp(6))
+            return
+        }
+        addText(results, "OFFLINE AIRPORT REFERENCE · STATIC DATA", accent, 12f, true, dp(6))
+        val airports = travelReferenceDatabase.findAirports(value)
+        if (airports.isEmpty()) {
+            addText(results, "No local airport reference found. This database currently includes AMD, BOM, DEL and BLR.", muted, 13f, false, dp(4))
+        }
+        airports.forEach { airport ->
+            val item = card(results)
+            addText(item, "${airport.name} · ${airport.iata} / ${airport.icao}", white, 14f, true, dp(4))
+            addText(item, "${airport.city}, ${airport.country} · ${airport.latitude}, ${airport.longitude} · REFERENCE", muted, 12f, false, dp(4))
+            val actions = row(item)
+            actions.addView(textButton("SHOW ON MAP", panelLight, white, 12f).apply {
+                setOnClickListener { openReferenceOnMap(airport.name, airport.latitude, airport.longitude) }
+            }, LinearLayout.LayoutParams(0, dp(42), 1f).apply { marginEnd = dp(5) })
+            actions.addView(textButton("ARRIVALS", panelLight, white, 12f).apply {
+                setOnClickListener { lookupFlights(airport.iata, "arrivals") }
+            }, LinearLayout.LayoutParams(0, dp(42), 1f).apply { marginEnd = dp(5) })
+            actions.addView(textButton("DEPARTURES", panelLight, white, 12f).apply {
+                setOnClickListener { lookupFlights(airport.iata, "departures") }
+            }, LinearLayout.LayoutParams(0, dp(42), 1f))
+        }
+        if (airports.isEmpty()) lookupFlightByNumber(value)
+    }
+
+    private fun lookupFlights(airportCode: String, direction: String) {
+        val results = travelLookupResults ?: return
+        val api = configuredTravelApi()
+        if (api == null) {
+            addText(results, "LIVE FLIGHTS: NOT CONFIGURED · set an authorized HTTPS travel API host in Administrator.", amber, 13f, false, dp(8))
+            return
+        }
+        addText(results, "Loading $direction for $airportCode…", muted, 13f, false, dp(6))
+        navigationExecutor.execute {
+            try {
+                val response = api.get("api/airports/${airportCode}/flights", mapOf("direction" to direction))
+                handler.post { if (activePage == PAGE_AIRPORT) renderTravelEnvelope(results, response) }
+            } catch (error: Exception) {
+                handler.post { if (activePage == PAGE_AIRPORT) addText(results, "Flight lookup unavailable: ${error.message ?: "connection failed"}", amber, 13f, false, dp(6)) }
+            }
+        }
+    }
+
+    private fun lookupFlightByNumber(flightNumber: String) {
+        val results = travelLookupResults ?: return
+        val api = configuredTravelApi()
+        if (api == null) {
+            addText(results, "No local airport match. Live flight lookup is not configured.", amber, 13f, false, dp(6))
+            return
+        }
+        navigationExecutor.execute {
+            try {
+                val normalizedNumber = flightNumber.filterNot { it.isWhitespace() }
+                if (!normalizedNumber.matches(Regex("[A-Za-z0-9]{2,16}"))) throw IllegalArgumentException("Enter a valid flight number")
+                val response = api.get("api/flights/$normalizedNumber")
+                handler.post { if (activePage == PAGE_AIRPORT) renderTravelEnvelope(results, response) }
+            } catch (error: Exception) {
+                handler.post { if (activePage == PAGE_AIRPORT) addText(results, "Flight lookup unavailable: ${error.message ?: "connection failed"}", amber, 13f, false, dp(6)) }
+            }
+        }
+    }
+
+    private fun renderTravelEnvelope(parent: LinearLayout, response: JSONObject) {
+        val category = response.optString("category", "UNKNOWN").uppercase(Locale.ROOT)
+        val provider = response.optString("provider", "Unknown provider")
+        val sourceTime = response.optString("source_timestamp", "Not supplied")
+        addText(parent, "$category · $provider · source time: $sourceTime", if (category == "LIVE") accent else amber, 12f, true, dp(6))
+        val message = response.optString("message")
+        if (message.isNotBlank()) addText(parent, message, muted, 13f, false, dp(4))
+        val records = response.optJSONArray("records") ?: return
+        if (records.length() == 0 && message.isBlank()) addText(parent, "No records returned.", muted, 13f, false, dp(4))
+        for (index in 0 until records.length()) {
+            val record = records.optJSONObject(index) ?: continue
+            val item = card(parent)
+            val keys = record.keys()
+            while (keys.hasNext()) {
+                val key = keys.next()
+                if (!record.isNull(key)) addMetricRow(item, key.replace('_', ' ').uppercase(Locale.ROOT), record.optString(key))
+            }
+        }
+    }
+
+    private fun configuredTravelApi(): TravelApiClient? {
+        val preferences = getSharedPreferences(PREF_TRAVEL_API, Context.MODE_PRIVATE)
+        val baseUrl = preferences.getString(KEY_TRAVEL_API_BASE_URL, BuildConfig.TRAVEL_API_BASE_URL).orEmpty()
+        val token = preferences.getString(KEY_TRAVEL_API_TOKEN, null)
+        return TravelApiClient.configured(baseUrl, token)
+    }
+
+    private fun openReferenceOnMap(name: String, latitude: Double, longitude: Double) {
+        formValues[KEY_DESTINATION_NAME] = name
+        formValues[KEY_DESTINATION_LAT] = latitude.toString()
+        formValues[KEY_DESTINATION_LON] = longitude.toString()
+        formValues[KEY_DESTINATION_QUERY] = "$latitude, $longitude"
+        formValues[KEY_MAP_LAT] = latitude.toString()
+        formValues[KEY_MAP_LON] = longitude.toString()
+        formValues[KEY_MAP_ZOOM] = "13"
+        showPage(PAGE_NAV)
     }
 
     private fun showTrolley(body: LinearLayout) {
@@ -913,6 +964,36 @@ class TrolleyHomeActivity : AppCompatActivity() {
         addText(body, "ADMINISTRATOR ROUTE", amber, 12f, true, dp(8))
         addText(body, "Maintenance and recovery", white, 24f, true, dp(8))
         addNote(body, "This is a convenience launcher, not a security kiosk. Android system screens, hardware controls and system error screens can remain accessible.")
+        val apiCard = card(body)
+        addText(apiCard, "TRAVEL API · HTTPS ONLY", accent, 13f, true, dp(6))
+        beginForm(apiCard, true)
+        val preferences = getSharedPreferences(PREF_TRAVEL_API, Context.MODE_PRIVATE)
+        val apiUrl = input(apiCard, KEY_TRAVEL_API_BASE_URL, "Backend base URL", "https://your-host.example/")
+        val apiToken = input(apiCard, KEY_TRAVEL_API_TOKEN, "Backend client token (optional)", "Client token only; never provider keys")
+        apiUrl.setText(preferences.getString(KEY_TRAVEL_API_BASE_URL, BuildConfig.TRAVEL_API_BASE_URL).orEmpty())
+        apiToken.setText(preferences.getString(KEY_TRAVEL_API_TOKEN, "").orEmpty())
+        apiCard.addView(textButton("SAVE AND TEST BACKEND", panelLight, white, 13f).apply {
+            setOnClickListener {
+                val configured = TravelApiClient.configured(apiUrl.text.toString().trim(), apiToken.text.toString())
+                if (configured == null) {
+                    apiUrl.error = "Enter a valid HTTPS base URL"
+                    return@setOnClickListener
+                }
+                preferences.edit()
+                    .putString(KEY_TRAVEL_API_BASE_URL, apiUrl.text.toString().trim().trimEnd('/') + "/")
+                    .putString(KEY_TRAVEL_API_TOKEN, apiToken.text.toString()).apply()
+                showMessage("Saved. Testing HTTPS health endpoint…")
+                probeExecutor.execute {
+                    try {
+                        val result = configured.get("api/health")
+                        handler.post { if (activePage == PAGE_ADMIN) showMessage("Backend health: ${result.optString("status", "unknown")}") }
+                    } catch (error: Exception) {
+                        handler.post { if (activePage == PAGE_ADMIN) showMessage("Backend not reachable: ${error.message ?: "connection failed"}") }
+                    }
+                }
+            }
+        }, LinearLayout.LayoutParams(-1, dp(48)).apply { topMargin = dp(5) })
+        addNote(apiCard, "Provider secrets stay on the backend. The tablet validates TLS certificates; use a publicly trusted chain compatible with Android 4.4.")
         addExternalButton(body, "OPEN ANDROID SETTINGS", "settings:")
         body.addView(textButton("RETURN TO DASHBOARD", accent, ink, 15f).apply {
             setOnClickListener { showPage(PAGE_HOME) }
@@ -1271,9 +1352,9 @@ class TrolleyHomeActivity : AppCompatActivity() {
         private const val KEY_PAGE = "page"
         private const val KEY_FORMS = "forms"
         private const val REQUEST_LOCATION = 402
-        private const val DEFAULT_MAP_LATITUDE = 22.9734
-        private const val DEFAULT_MAP_LONGITUDE = 78.6569
-        private const val DEFAULT_MAP_ZOOM = 4.5
+        private const val DEFAULT_MAP_LATITUDE = 23.0225
+        private const val DEFAULT_MAP_LONGITUDE = 72.5714
+        private const val DEFAULT_MAP_ZOOM = 11.0
         private const val KEY_DESTINATION_QUERY = "destination"
         private const val KEY_DESTINATION_NAME = "nav_destination_name"
         private const val KEY_DESTINATION_LAT = "nav_destination_lat"
@@ -1288,6 +1369,9 @@ class TrolleyHomeActivity : AppCompatActivity() {
         private const val PREF_NAVIGATION = "navigation_places"
         private const val PREF_SAVED_PLACES = "saved_places"
         private const val PREF_RECENT_PLACES = "recent_places"
+        private const val PREF_TRAVEL_API = "travel_api"
+        private const val KEY_TRAVEL_API_BASE_URL = "base_url"
+        private const val KEY_TRAVEL_API_TOKEN = "client_token"
         private const val MAX_SAVED_PLACES = 12
         private const val MAX_RECENT_PLACES = 8
     }

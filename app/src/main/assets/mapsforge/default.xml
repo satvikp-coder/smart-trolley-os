@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rendertheme xmlns="http://mapsforge.org/renderTheme" version="1" map-background="#f4f1e8">
+    <rule e="way" k="natural" v="water|bay|riverbank">
+        <area fill="#b8dced" />
+    </rule>
+    <rule e="way" k="landuse" v="residential|commercial|industrial">
+        <area fill="#e6e2d8" />
+    </rule>
+    <rule e="way" k="highway" v="motorway|trunk|primary">
+        <line stroke="#e6a46c" stroke-width="2.8" />
+    </rule>
+    <rule e="way" k="highway" v="secondary|tertiary">
+        <line stroke="#ffffff" stroke-width="2.0" />
+    </rule>
+    <rule e="way" k="highway" v="*">
+        <line stroke="#d2c8b5" stroke-width="1.0" />
+    </rule>
+    <rule e="way" k="railway" v="rail">
+        <line stroke="#856c9b" stroke-width="1.4" />
+    </rule>
+    <rule e="way" k="building" v="*" zoom-min="15">
+        <area fill="#d8c9bb" stroke="#b8a999" stroke-width="0.4" />
+    </rule>
+    <rule e="node" k="place" v="city|town|village">
+        <circle radius="3" fill="#34485d" />
+        <caption k="name" fill="#29394b" stroke="#ffffff" stroke-width="2" font-size="11" />
+    </rule>
+</rendertheme>

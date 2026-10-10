@@ -1,21 +1,18 @@
 ## Smart Trolley OS edition
 
-This branch adapts Dashline into a landscape HOME launcher for a dedicated
-smart-trolley tablet. It retains the original GPLv3 code and adds a custom
-dashboard, an embedded osmdroid navigation screen, Railway and Airport
-assistants, and tablet status. See the Phase 3 reports for device-tested limits:
-on the tested Android 4.4.2 tablet, the embedded map view starts but OSM tile
-requests fail TLS negotiation, and no routing/geocoding proxy is configured.
+This Phase 4 recovery continues the existing GPLv3 Dashline-based Smart
+Trolley HOME launcher. It preserves the established Dashboard, Navigation,
+Railway, Airport, Trolley and Administrator screens. Navigation now integrates
+Mapsforge offline vector rendering and the tree includes a verified external
+western India map dataset with Ahmedabad coverage. The map has not yet been
+transferred/rendered on the physical tablet; see `PHASE4_RECOVERY_REPORT.md`.
 
-See [Smart Trolley OS build, operation and recovery](SMART_TROLLEY_OS.md) for
-what is connected, what is simulated, API 19 compatibility, and tablet setup.
-
-Phase 3 navigation, audit, test results, and cleanup approval materials:
-[Navigation implementation](NAVIGATION_IMPLEMENTATION.md),
-[device cleanup audit](DEVICE_CLEANUP_AUDIT.md),
-[performance report](PERFORMANCE_TEST_REPORT.md), and
-[final report](PHASE3_FINAL_REPORT.md). The cleanup scripts in `tools/` are
-dry-run by default and have not been run against the tablet.
+Airport reference search is offline for four sourced airport records. Airport
+live queries have a mock-tested backend adapter but no credentials/deployment;
+railway requests remain blocked for lack of authorized provider access. Neither
+module presents mock data as live. No device packages or default HOME settings
+were changed. See `SMART_TROLLEY_OS.md`, `NAVIGATION_IMPLEMENTATION.md`, and
+`DEVICE_CLEANUP_APPROVAL.md` for operation, limitations and safety status.
 
 <p align="center">
   <img src="docs/logo.png" alt="Dashline" width="96">
@@ -41,6 +38,22 @@ dry-run by default and have not been run against the tablet.
 </p>
 
 ---
+
+## Smart Trolley OS edition (Phase 4 recovery)
+
+This repository retains Dashline and its working Smart Trolley landscape HOME
+interface. The Android legacy build now integrates Mapsforge 0.21 offline
+vector rendering, manual/saved coordinates, a small public-domain airport
+reference database, and an optional HTTPS travel-backend client. No external
+map app is launched. A verified western India map includes Ahmedabad, but has
+not yet been copied to the tablet or physically rendered there. See
+`PHASE4_RECOVERY_REPORT.md` for exact test/device status and required approvals.
+
+Railway live service is not configured because no authorized API access is
+available; station input is manual, not a timetable database. Airport live
+service is adapter-ready and mock-tested, but requires an Aviationstack key,
+backend deployment, and coverage/terms confirmation. Cached information must
+not be treated as current.
 
 ## How it works
 

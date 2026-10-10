@@ -49,3 +49,31 @@ def test_mocked_airport_response_normalizes_only_supplied_fields(monkeypatch):
     assert second["category"] == "CACHED"
     assert len(calls) == 1
 
+
+def test_mocked_flight_number_lookup_uses_documented_filter_and_preserves_missing_fields(monkeypatch):
+    import app as service
+
+    monkeypatch.setenv("AVIATIONSTACK_ACCESS_KEY", "private-test-key")
+    service.cache.clear()
+    calls = []
+
+    async def fake_get_json(url, params, headers=None):
+        calls.append((url, params))
+        return {"data": [{"flight": {"iata": "AI101"}, "airline": {"name": "Air India"},
+                          "flight_status": "scheduled", "departure": {"iata": "AMD"}, "arrival": {"iata": "DEL"}}]}
+
+    monkeypatch.setattr(service, "get_json", fake_get_json)
+    response = client.get("/api/flights/AI%20101")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["category"] == "LIVE"
+    assert result["records"][0]["flight_number"] == "AI101"
+    assert result["records"][0]["origin"] == "AMD"
+    assert "arrival_gate" not in result["records"][0]
+    assert calls[0][1]["flight_number"] == "AI101"
+    assert "private-test-key" not in response.text
+
+
+def test_flight_number_validation():
+    assert client.get("/api/flights/!!!!").status_code == 422
+
