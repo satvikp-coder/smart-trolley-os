@@ -14,6 +14,7 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Tls12SocketFactory.install()
         ThemeManager.apply(Prefs(this))
     }
 }

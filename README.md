@@ -1,13 +1,21 @@
 ## Smart Trolley OS edition
 
 This branch adapts Dashline into a landscape HOME launcher for a dedicated
-smart-trolley tablet. It keeps the original GPLv3 code and adds an offline-first
-dashboard, external map directions, railway and airport assistants, and tablet
-status. The original Dashline screens remain in the source but are no longer the
-launch screen.
+smart-trolley tablet. It retains the original GPLv3 code and adds a custom
+dashboard, an embedded osmdroid navigation screen, Railway and Airport
+assistants, and tablet status. See the Phase 3 reports for device-tested limits:
+on the tested Android 4.4.2 tablet, the embedded map view starts but OSM tile
+requests fail TLS negotiation, and no routing/geocoding proxy is configured.
 
 See [Smart Trolley OS build, operation and recovery](SMART_TROLLEY_OS.md) for
 what is connected, what is simulated, API 19 compatibility, and tablet setup.
+
+Phase 3 navigation, audit, test results, and cleanup approval materials:
+[Navigation implementation](NAVIGATION_IMPLEMENTATION.md),
+[device cleanup audit](DEVICE_CLEANUP_AUDIT.md),
+[performance report](PERFORMANCE_TEST_REPORT.md), and
+[final report](PHASE3_FINAL_REPORT.md). The cleanup scripts in `tools/` are
+dry-run by default and have not been run against the tablet.
 
 <p align="center">
   <img src="docs/logo.png" alt="Dashline" width="96">

@@ -22,23 +22,27 @@ Tools 35 or newer is required by this project configuration.
 
 - Original baseline: `:app:assembleLegacyDebug` succeeded before the Smart
   Trolley changes.
-- Smart Trolley build: `:app:assembleLegacyDebug` succeeds; the APK is about
-  6.2 MiB and declares `minSdk 19`, landscape HOME, and label `Smart Trolley OS`.
+- Smart Trolley build: `:app:assembleLegacyDebug` succeeds; the APK declares
+  `minSdk 19`, landscape HOME, and label `Smart Trolley OS`.
 - Unit tests: `:app:testLegacyDebugUnitTest` reports `NO-SOURCE`; this repository
   has no unit-test source set.
 - Lint: `:app:lintLegacyDebug` completes. It reports inherited issues in the
   unused Dashline screens and widgets; the new `TrolleyHomeActivity` has no lint
   errors. The legacy issues include API 21 calls and old back-handler patterns.
-- The APK has not been installed or launched on the tablet, so touch behavior,
-  browser availability, and runtime performance still need device validation.
+- Phase 3 was installed and opened on the iBall API 19 tablet. The embedded map
+  view opened, but HTTPS tile downloads failed KitKat TLS negotiation. Refer to
+  `NAVIGATION_IMPLEMENTATION.md` and `PHASE3_FINAL_REPORT.md` for the actual
+  device findings.
 
 ## What works
 
 - Landscape HOME dashboard with large touch controls, clock, tablet battery and
   charging state, Wi-Fi state, and an HTTPS internet connectivity check.
-- Navigation destination entry opens Google Maps directions through an
-  installed map app or browser, with a `geo:` intent fallback. It does not
-  implement indoor maps or indoor positioning.
+- Navigation is embedded with osmdroid, coordinate markers, saved/recent
+  destinations, and an optional HTTPS routing/geocoding proxy. On the tested
+  API 19 tablet OSM basemap tile requests currently fail TLS negotiation; no
+  proxy or offline region map is bundled. It does not provide indoor maps or
+  indoor positioning.
 - Railway and airport forms retain user-entered details through screen changes
   and activity recreation. Saved results are explicitly marked as manual.
 - Demonstration buttons show sample records labeled `SIMULATION · NOT LIVE`.
