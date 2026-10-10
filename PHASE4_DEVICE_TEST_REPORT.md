@@ -2,10 +2,12 @@
 
 ## Recovery-build pass
 
-At this pass, `C:\platform-tools\adb.exe devices -l` returned an empty device
-list and `adb shell` responded `no devices/emulators found`. The iBall could not
-be rechecked or tested. No install, map transfer, package action, HOME selection
-change, or device write was performed.
+At initial check, ADB detected serial `0123456789ABCDEF`, model
+`3G_Q45_2_16GB_`, API 19, ARMv7. Read-only storage showed 2.4 GiB `/data` and
+8.2 GiB `/sdcard` free. After owner approval, map push reported 183,975,384
+bytes sent but returned `failed to read copy response: EOF`; the tablet then
+disappeared from ADB before remote hash/size verification. The app map copy is
+unverified. The APK was **not installed**. No package or HOME changes occurred.
 
 ## Last known device baseline
 
@@ -26,6 +28,6 @@ the prior connected package inventory; no removal by this project is inferred.
 - Original Launcher3 recovery was preserved by making no package/default
   changes; its current runtime state was not re-read while disconnected.
 
-After owner approval and reconnect, copy the map and install with rollback
-ready. The detailed commands and measured data are in
-`PHASE4_RECOVERY_REPORT.md`.
+After reconnect, verify the map file size/checksum, repeat the transfer only if
+needed, then install the APK using the already-approved operation. The detailed
+commands and measured data are in `PHASE4_RECOVERY_REPORT.md`.

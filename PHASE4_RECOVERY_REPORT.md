@@ -57,9 +57,14 @@ download succeeded.
 - Mapsforge app data location: `/sdcard/Android/data/com.dashline.launcher/files/maps/`.
   App-owned internal `files/maps` fallback is used when external app storage is
   unavailable.
-- Map source is present only on the development laptop. It has **not** been
-  transferred; pan/zoom, offline drawing, GPS marker and no-network map display
-  require approved physical testing.
+- During the approved transfer attempt, `adb push` reported 183,975,384 bytes
+  sent, then returned `failed to read copy response: EOF`. The tablet
+  disconnected before a device-side size/checksum check could run. Treat the
+  remote file as **UNVERIFIED**; do not infer a complete usable copy from the
+  host byte count. Reconnect, verify size and MD5, and repeat the push only if
+  needed. APK installation was not attempted in that run.
+- Pan/zoom, offline drawing, GPS marker and no-network display still require
+  physical testing.
 
 Status: **IMPLEMENTED BUT NOT DEVICE-TESTED**. A valid map file and integrated
 renderer exist; the acceptance criterion requires actual rendering on the iBall.
@@ -144,13 +149,14 @@ python -m pytest -q
 
 ## G. Device state and performance
 
-Current read-only `adb devices -l`: **no devices/emulators found**. Therefore
-this pass cannot freshly confirm model, battery, storage, Launcher3 state, or
-run Logcat. Phase 3 reports say the stock Launcher3 remained selected and the
-earlier build launched on API 19. Last-reported `/data` free ~2.4 GiB and
-`/sdcard` ~8.2 GiB are historical, not remeasured this pass. No cleanup or
-device writes occurred; optional game packages were absent in the previous
-connected inventory, but no removal is inferred.
+The device was read-only verified immediately before transfer: model
+`3G_Q45_2_16GB_`, API 19, `armeabi-v7a`, `/data` free 2.4 GiB, `/sdcard` free
+8.2 GiB. Battery service returned conflicting duplicate readings (22% and
+50%; USB powered). During the approved map transfer, ADB reported all bytes
+sent but then returned EOF; the device subsequently disappeared. Launcher3 and
+the old Dashline package paths were present before transfer. Current remote
+map integrity cannot be checked until reconnect. No cleanup or HOME change
+occurred.
 
 No Phase 4 PSS, startup, touch, battery, map renderer, TLS or GPS measurements
 exist. Do not claim optimization/performance improvements. See
@@ -167,16 +173,19 @@ C:\platform-tools\adb.exe shell getprop ro.build.version.sdk
 C:\platform-tools\adb.exe shell df /data /sdcard
 ```
 
-**Approval required before either transfer or APK installation.** Once
-approved, the expected ~176 MiB map transfer and APK update commands are:
+Transfer and installation are approved. The first map transfer returned EOF.
+On reconnect, verify the destination file before installing:
 
 ```powershell
-C:\platform-tools\adb.exe shell mkdir -p /sdcard/Android/data/com.dashline.launcher/files/maps
-C:\platform-tools\adb.exe push "C:\Users\satvi\Documents\SmartTrolleyOS\maps\bbbike-extract\western-zone-mapsforge-osm\western-zone.map" /sdcard/Android/data/com.dashline.launcher/files/maps/western-zone.map
-C:\platform-tools\adb.exe shell ls -l /sdcard/Android/data/com.dashline.launcher/files/maps/
 C:\platform-tools\adb.exe install -r "C:\Users\satvi\Desktop\dashline-main\app\build\outputs\apk\legacy\debug\app-legacy-debug.apk"
 C:\platform-tools\adb.exe shell am start -n com.dashline.launcher/.TrolleyHomeActivity
 ```
+
+Compare remote file size to `183975384` and MD5 to
+`C8B14BFDEB65D09E2BB61633594E53E0` using `adb shell ls -ln ...` and
+`adb shell md5sum ...`. If absent/incomplete, repeat the already-approved
+`adb push` before APK installation. If `md5sum` is unavailable, pull the file
+back and compare its hash on the laptop.
 
 No HOME selection is changed by these commands. Before update, preserve the
 current installed state and verify original launcher package exists. Roll back
@@ -193,10 +202,13 @@ automatically select itself as default. Keep ADB enabled for recovery.
 
 ## I. Approval checkpoint
 
-1. Reconnect the tablet and approve transfer of the 183,975,384-byte map file.
-2. Approve installation of the new APK over the existing app (same signer;
-   rollback APK verified available).
+1. Reconnect the tablet; the existing approval covers map transfer and APK
+   installation. Verify map size/checksum before proceeding.
+2. Install and launch the APK after map verification; same signer and rollback
+   APK are ready.
 3. Leave package cleanup and default HOME changes unapproved/unperformed.
 
-No APK install, map push, app uninstall, user-data clearing, system-package
-change, firmware operation or default launcher change was performed.
+No APK install, app uninstall, user-data clearing, system-package change,
+firmware operation or default launcher change was performed. The map push
+attempt wrote to the app map directory, but final remote integrity remains
+unknown until reconnection.
