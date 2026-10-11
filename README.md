@@ -4,8 +4,10 @@ This Phase 4 recovery continues the existing GPLv3 Dashline-based Smart
 Trolley HOME launcher. It preserves the established Dashboard, Navigation,
 Railway, Airport, Trolley and Administrator screens. Navigation now integrates
 Mapsforge offline vector rendering and the tree includes a verified external
-western India map dataset with Ahmedabad coverage. The map has not yet been
-transferred/rendered on the physical tablet; see `PHASE4_RECOVERY_REPORT.md`.
+western India map dataset with Ahmedabad coverage. It has rendered on the
+physical tablet; ADB-injected tap, pan and zoom passed after a callback fix.
+Human touchscreen and Wi-Fi-off checks remain unverified; see
+`PHASE4_RECOVERY_REPORT.md`.
 
 Airport reference search is offline for four sourced airport records. Airport
 live queries have a mock-tested backend adapter but no credentials/deployment;
@@ -45,9 +47,10 @@ This repository retains Dashline and its working Smart Trolley landscape HOME
 interface. The Android legacy build now integrates Mapsforge 0.21 offline
 vector rendering, manual/saved coordinates, a small public-domain airport
 reference database, and an optional HTTPS travel-backend client. No external
-map app is launched. A verified western India map includes Ahmedabad, but has
-not yet been copied to the tablet or physically rendered there. See
-`PHASE4_RECOVERY_REPORT.md` for exact test/device status and required approvals.
+map app is launched. A verified western India map includes Ahmedabad and has
+rendered on the tablet. ADB-injected pan/zoom/tap checks passed; physical touch
+and offline-network-loss checks remain outstanding. See
+`PHASE4_RECOVERY_REPORT.md` for exact device status.
 
 Railway live service is not configured because no authorized API access is
 available; station input is manual, not a timetable database. Airport live

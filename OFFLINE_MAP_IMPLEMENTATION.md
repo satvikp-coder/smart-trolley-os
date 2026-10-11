@@ -2,7 +2,7 @@
 
 ## Status
 
-**IMPLEMENTED BUT NOT DEVICE-TESTED.** The app now uses Mapsforge 0.21.0 for
+**IMPLEMENTED AND DEVICE-TESTED (ADB-injected interaction).** The app uses Mapsforge 0.21.0 for
 vector maps and no longer instantiates osmdroid. The renderer checks a local
 Mapsforge `.map` file, validates its header and geographic bounds, renders
 vector tiles with pan/zoom, supports tap-to-pin, saved destination/current
@@ -30,17 +30,22 @@ verified after extraction. It is a broad western India regional map, not a
 small city-only file.
 
 The official Mapsforge western-zone map is a larger fallback (213,018,151
-bytes); it was not selected. No dataset has been transferred to the tablet.
-The laptop map occupies storage outside the repository and APK.
+bytes); it was not selected. The verified dataset is installed at
+`/sdcard/Android/data/com.dashline.launcher/files/maps/a-western-zone.map`;
+device MD5 matched the local file. The laptop map occupies storage outside the
+repository and APK.
 
 ## Acquisition note and limits
 
 The initial `download.bbbike.org` route failed Windows Schannel trust with
 `SEC_E_UNTRUSTED_ROOT`; certificate validation was not disabled. The alternate
 BBBike `download3` directory/data host and official Mapsforge site validated
-normally, so a legitimate extract was obtained. The APK build verifies
-integration/compilation, not visible map rendering on the physical tablet.
-Dataset transfer and Phase 4 APK installation await explicit approval.
+normally, so a legitimate extract was obtained. The map rendered on the tablet;
+ADB taps placed a marker, a swipe panned, and zoom magnified map detail. The
+first build's tap handler crashed when Mapsforge supplied null layer coordinates;
+the nullable-safe fix is installed and the same interaction passed. Wi-Fi-off
+behavior is not verified because Android denied the ADB Wi-Fi toggle. See
+`PHASE4_DEVICE_TEST_REPORT.md`.
 
 Attribution: “© OpenStreetMap contributors” is shown in the map screen. See
 `MAP_DATA_SOURCE_AND_LICENSE.md` for ODbL/source details. The app uses

@@ -1,33 +1,49 @@
 # Phase 4 physical-device test report
 
-## Recovery-build pass
+## Installation and identity
 
-At initial check, ADB detected serial `0123456789ABCDEF`, model
-`3G_Q45_2_16GB_`, API 19, ARMv7. Read-only storage showed 2.4 GiB `/data` and
-8.2 GiB `/sdcard` free. After owner approval, map push reported 183,975,384
-bytes sent but returned `failed to read copy response: EOF`; the tablet then
-disappeared from ADB before remote hash/size verification. The app map copy is
-unverified. The APK was **not installed**. No package or HOME changes occurred.
+- ADB serial `0123456789ABCDEF`; iBall `3G_Q45_2_16GB_`, Android API 19,
+  `armeabi-v7a`; `/data` free 2.4 GiB and `/sdcard` free 8.2 GiB before map
+  transfer.
+- Map file transferred in 22 chunks after the first one-shot ADB transfer
+  returned EOF. Final device size 183,975,384 bytes and device MD5 matched
+  laptop source (`c8b14bfdeb65d09e2bb61633594e53e0`). Incomplete files created by
+  the failed first transfer were removed; final map retained.
+- New APK `adb install -r` succeeded; `TrolleyHomeActivity` explicitly launched.
+  Current APK is backed up as `phase4-tapfix.apk`. Original Launcher3 still
+  exists. Default HOME was not changed.
 
-## Last known device baseline
+## Tests performed
 
-Phase 3 reports record iBall Slide 3G Q45 / `3G_Q45_2_16GB_`, Android 4.4.2
-API 19 / ARMv7 / 1024×600, stock Launcher3 present and selected as HOME, and
-successful launch of the earlier Smart Trolley build. Previous storage figures
-were approximately 2.4 GiB free in `/data` and 8.2 GiB on `/sdcard`; these are
-historical until ADB reconnects. The six optional-game packages were absent in
-the prior connected package inventory; no removal by this project is inferred.
+- **Map render:** verified screenshot visibly showed Ahmedabad label, roads,
+  rail, water and surrounding map features from the installed offline map.
+- **Tap and marker:** first build crashed. Logcat root cause:
+  `NullPointerException` from Mapsforge passing null `layerXY` into Kotlin
+  non-null `onTap` parameter. Changed callback parameters to nullable, rebuilt
+  and reinstalled. Retest successfully set a map coordinate and displayed a
+  marker; no subsequent fatal exception was observed.
+- **Pan:** ADB swipe changed the view; tapping a fixed screen point returned a
+  different coordinate (from about 23.0250, 72.5687 to 23.0276, 72.4891).
+- **Zoom:** Mapsforge zoom control visibly increased road detail.
+- **Screen navigation:** injected ADB taps opened Dashboard, Navigation,
+  Railway, Airport, Trolley and Administrator; each displayed expected
+  screen-specific content and activity remained alive.
+- **Orientation:** UIAutomator rotation `1`, logical bounds 1024×552; physical
+  panel reports 600×1024 at 160 dpi. Manifest remains landscape.
+- **Memory:** map-screen PSS 41,549 KiB (~40.6 MiB), one uncontrolled sample.
+- **Storage after map:** `/data` 2.4 GiB free; `/sdcard` 8.0 GiB free.
+- **Logcat:** initial tap NPE captured; no fatal exception appeared in the
+  post-fix map/screen interactions.
 
-## Phase 4 not yet tested on tablet
+## Not verified
 
-- Mapsforge renderer has not rendered the western-zone dataset on-device.
-- No pan/zoom, offline rendering, GPS marker, startup time, PSS, battery or
-  touchscreen test of this build occurred.
-- No configured backend exists for a tablet TLS/health test.
-- No live railway/flight source credentials were supplied.
-- Original Launcher3 recovery was preserved by making no package/default
-  changes; its current runtime state was not re-read while disconnected.
+- A human physically touching the display; gestures above were injected via
+  ADB. Please confirm touch feel and accuracy on the glass.
+- Wi-Fi-off behavior: `adb shell svc wifi disable` was denied by Android
+  `CHANGE_WIFI_STATE`; Wi-Fi remained on. The map is sourced from local storage,
+  but a network-disconnected screenshot was not obtained.
+- GPS fix/location marker, battery duration, controlled startup/PSS comparison,
+  live providers, or tablet connection to an HTTPS backend.
 
-After reconnect, verify the map file size/checksum, repeat the transfer only if
-needed, then install the APK using the already-approved operation. The detailed
-commands and measured data are in `PHASE4_RECOVERY_REPORT.md`.
+The installed app is left on Navigation with the map visible. No package was
+removed/disabled and no HOME default changed.

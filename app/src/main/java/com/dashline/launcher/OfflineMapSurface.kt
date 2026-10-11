@@ -86,7 +86,7 @@ class OfflineMapSurface(
             view.addLayer(renderer)
             val inputLayer = object : Layer() {
                 override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: org.mapsforge.core.graphics.Canvas, topLeftPoint: Point) = Unit
-                override fun onTap(tapLatLong: LatLong, layerXY: Point, tapXY: Point): Boolean {
+                override fun onTap(tapLatLong: LatLong, layerXY: Point?, tapXY: Point?): Boolean {
                     onMapTap(TravelCoordinate(tapLatLong.latitude, tapLatLong.longitude))
                     return true
                 }

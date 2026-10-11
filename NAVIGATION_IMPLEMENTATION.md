@@ -9,8 +9,10 @@ calculation requires a configured backend and current origin coordinates.
 
 The map file is stored outside the APK under the app-specific
 `Android/data/com.dashline.launcher/files/maps/` directory. The supplied
-western-zone extract includes Ahmedabad; no map file has been transferred to
-the device yet. See `OFFLINE_MAP_IMPLEMENTATION.md`.
+western-zone extract includes Ahmedabad and is installed on the tablet. The
+map rendered; ADB-injected tap, pan and zoom passed after a nullable callback
+fix. Human touchscreen and network-disconnected tests remain unverified. See
+`OFFLINE_MAP_IMPLEMENTATION.md`.
 
 The replaceable `NavigationProvider` uses the normalized backend contract at
 `/api/navigation/geocode` and `/api/navigation/route`. Provider credentials are
@@ -25,6 +27,6 @@ GPS is requested only when the user asks. If disabled, unavailable, or lacking
 a fix, coordinate entry and destination marking remain available. No indoor
 positioning or platform-level accuracy is claimed.
 
-There is no Android external-map launch path for normal navigation. Physical
-map rendering, touch, GPS, and offline behavior remain **not device-tested** in
-this recovery build; compilation alone does not prove renderer behavior.
+There is no Android external-map launch path for normal navigation. GPS fix and
+actual Wi-Fi-disconnected operation remain **not verified**. ADB input tests
+are not a substitute for a human touchscreen test.

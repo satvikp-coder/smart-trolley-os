@@ -39,9 +39,10 @@ Tools 35 or newer is required by this project configuration.
 - Landscape HOME dashboard with large touch controls, clock, tablet battery and
   charging state, Wi-Fi state, and an HTTPS internet connectivity check.
 - Navigation is embedded with Mapsforge 0.21, local `.map` discovery,
-  coordinates, saved destinations, markers and route overlay. A verified
-  external western-zone dataset includes Ahmedabad, but has not been transferred
-  or rendered on the tablet. Online geocoding/routing require the configured
+  coordinates, saved destinations, markers and route overlay. The verified
+  western-zone dataset includes Ahmedabad and rendered on the tablet. ADB
+  injected tap, pan and zoom passed after a callback nullability fix; human
+  touchscreen and Wi-Fi-off behavior remain unverified. Online geocoding/routing require the configured
   HTTPS backend and provider credentials. Indoor maps/positioning are not
   implemented.
 - Railway and airport forms retain user-entered details through screen changes
@@ -83,10 +84,10 @@ default HOME app.
 
 ## Install and select the launcher
 
-This recovery APK and map have not been installed/transferred. Obtain explicit
-approval before copying the ~176 MiB map or installing the APK. Confirm
-that USB debugging and the stock launcher work first, and leave adequate free
-space on `/data` for installation and updates.
+The current recovery APK and map are installed/transferred for testing. The
+APK backup and prior Phase 3 APK are preserved. Launcher3 remains installed;
+the default HOME selection has not been changed. See
+`PHASE4_RECOVERY_REPORT.md` for hashes, rollback, and test results.
 
 ```powershell
 C:\platform-tools\adb.exe install -r app/build/outputs/apk/legacy/debug/app-legacy-debug.apk
