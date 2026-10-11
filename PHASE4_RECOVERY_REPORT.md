@@ -68,6 +68,23 @@ accepts and stores manual search terms; backend endpoints report
 `UNKNOWN`/`NOT_AVAILABLE`. No local train timetable/station catalog, live
 arrival/departure board, delay, or platform is supplied. Live railway data is
 **BLOCKED BY PROVIDER ACCESS**; no scraping or undocumented endpoints were used.
+The Railway screen now also searches named features in the locally installed
+Mapsforge file for the bounded Ahmedabad–Gandhinagar area and can center them
+on the internal map. Its all-day example board is explicitly fictional
+simulation; simulated platforms are not station assignments.
+
+Follow-up build: `:app:assembleLegacyDebug :app:testLegacyDebugUnitTest`
+passed, including the demo-board unit test. An actual local-map JVM check read
+the regional map and returned `Ahmedabad` and `Gandhinagar`; the installed
+tablet build searched `Gandhinagar`, returned map coordinates
+`23.22329, 72.64923`, and opened the internal Navigation map. Follow-up APK is
+6,818,473 bytes, SHA-256
+`8546EFEE7BDB02DC16E3B257892D2BE829D3AD6260D9043C6FAC993BB69780C8`, minSdk
+19, backed up as `C:\Users\satvi\Documents\SmartTrolleyOS\backups\phase4-railway-map-demo.apk`.
+The APK was installed with `adb install -r`; Launcher3 remains installed and
+the default HOME choice was not changed. The demo schedule's data/time/platform
+constraints passed unit tests, but the board button and rendered rows were not
+verified on the tablet.
 
 ## D. Airport
 

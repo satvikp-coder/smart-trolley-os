@@ -16,6 +16,11 @@ module presents mock data as live. No device packages or default HOME settings
 were changed. See `SMART_TROLLEY_OS.md`, `NAVIGATION_IMPLEMENTATION.md`, and
 `DEVICE_CLEANUP_APPROVAL.md` for operation, limitations and safety status.
 
+The Railway screen can search named places directly from the offline regional
+Mapsforge file and open a selected result on the in-app map. `LOAD SIMULATION`
+shows an example full-day train list with fictional platforms; it is labeled
+SIMULATION / NOT LIVE and is not real railway information.
+
 <p align="center">
   <img src="docs/logo.png" alt="Dashline" width="96">
 </p>

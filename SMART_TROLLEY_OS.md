@@ -57,8 +57,10 @@ Tools 35 or newer is required by this project configuration.
 
 No live train feed or timetable is configured. NTES is linked as the official
 Indian Railways information service at <https://enquiry.indianrail.gov.in/ntes/>.
-The app does not scrape NTES or claim a private API. Railway UI supports manual
-search strings only. Offline airport reference lookup includes four static
+The app does not scrape NTES or claim a private API. Railway UI supports
+manual train/station inputs and offline named-feature search from the Ahmedabad–
+Gandhinagar Mapsforge region. Its all-day demo board is fictional and all
+platform numbers are marked simulated. Offline airport reference lookup includes four static
 records (AMD/BOM/DEL/BLR), sourced from OurAirports public-domain data; they are
 not flight schedules. The Aviationstack adapter has mock tests, but no live
 key/backend is configured. Manual, reference, cache and live categories remain

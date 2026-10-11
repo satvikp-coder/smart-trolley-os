@@ -30,3 +30,9 @@ positioning or platform-level accuracy is claimed.
 There is no Android external-map launch path for normal navigation. GPS fix and
 actual Wi-Fi-disconnected operation remain **not verified**. ADB input tests
 are not a substitute for a human touchscreen test.
+
+The Railway screen can search named POIs and map-way labels from the local
+Mapsforge map within the Ahmedabad–Gandhinagar search bounds; selecting one
+opens Navigation centered on its map coordinates. This is offline OSM map-name
+search, not a railway-station schedule service. The Railway day-board demo uses
+fictional service names, times and platforms, all explicitly labeled simulated.

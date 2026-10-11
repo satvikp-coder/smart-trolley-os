@@ -41,6 +41,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -719,13 +720,7 @@ class TrolleyHomeActivity : AppCompatActivity() {
             }
         }, LinearLayout.LayoutParams(0, dp(54), 1f).apply { marginEnd = dp(8) })
         actions.addView(textButton("LOAD SIMULATION", panelLight, white, 13f).apply {
-            setOnClickListener {
-                saveManualResult("rail", "SIMULATION · NOT LIVE", listOf(
-                    "Train" to "DEMO 12345", "Station" to "Example Central", "Arrival" to "09:15",
-                    "Departure" to "09:20", "Platform" to "Example only", "Train status" to "Simulated demonstration"
-                ))
-                showPage(PAGE_RAIL)
-            }
+            setOnClickListener { showDemoRailwayBoard(station.text.toString()) }
         }, LinearLayout.LayoutParams(0, dp(54), 1f))
         body.addView(textButton("SAVE STATION AS LOCAL MANUAL REFERENCE", panelLight, white, 13f).apply {
             setOnClickListener {
@@ -739,12 +734,15 @@ class TrolleyHomeActivity : AppCompatActivity() {
         body.addView(textButton("SEARCH LOCAL STATIONS / CHECK PROVIDER", accent, ink, 13f).apply {
             setOnClickListener { lookupRailway(station.text.toString()) }
         }, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(6) })
+        body.addView(textButton("SEARCH PLACES IN OFFLINE AHMEDABAD MAP", panelLight, white, 13f).apply {
+            setOnClickListener { searchRailwayMapPlaces(station.text.toString()) }
+        }, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(6) })
         travelLookupResults = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         body.addView(travelLookupResults, LinearLayout.LayoutParams(-1, -2))
         addSavedResult(body, "rail")
         addExternalButton(body, "OPEN OFFICIAL NTES", "https://enquiry.indianrail.gov.in/ntes/")
         addJourneyNavigationButton(body, "NAVIGATE TO STATION", "rail_station")
-        addNote(body, "LIVE STATUS: BLOCKED BY PROVIDER ACCESS. Manual station references are local search terms only; they do not imply a timetable, platform, location or live status. Demo records are simulated. Verify platform announcements at the station.")
+        addNote(body, "LIVE STATUS: BLOCKED BY PROVIDER ACCESS. Offline place search reads named features from the Ahmedabad–Gandhinagar map. The full-day train board and every platform shown by LOAD SIMULATION are fictional examples, not real services or station assignments. Verify travel information with official railway sources.")
     }
 
     private fun showAirport(body: LinearLayout) {
@@ -833,6 +831,61 @@ class TrolleyHomeActivity : AppCompatActivity() {
                     if (activePage == PAGE_RAIL) addText(results, "Railway lookup unavailable: ${error.message ?: "connection failed"}", amber, 13f, false, dp(6))
                 }
             }
+        }
+    }
+
+    private fun searchRailwayMapPlaces(query: String) {
+        val value = query.trim()
+        val results = travelLookupResults ?: return
+        results.removeAllViews()
+        if (value.isEmpty()) {
+            addText(results, "Enter a place name, station, landmark or area to search the offline map.", amber, 14f, false, dp(6))
+            return
+        }
+        val mapFile = File(getExternalFilesDir(null) ?: filesDir, "maps")
+            .listFiles()?.filter { it.isFile && it.extension.equals("map", true) }
+            ?.sortedBy { it.name }?.firstOrNull()
+        if (mapFile == null) {
+            addText(results, "OFFLINE MAP NOT FOUND. Copy the Mapsforge map into the app's maps folder first.", amber, 13f, false, dp(8))
+            return
+        }
+        addText(results, "SEARCHING OFFLINE MAP FEATURES · Ahmedabad–Gandhinagar · OSM reference", accent, 12f, true, dp(6))
+        navigationExecutor.execute {
+            try {
+                val places = AhmedabadMapPlaceSearch.search(mapFile, value)
+                handler.post {
+                    if (activePage != PAGE_RAIL) return@post
+                    if (places.isEmpty()) {
+                        addText(results, "No matching named map features found for ‘$value’. Try a shorter place name or landmark.", muted, 13f, false, dp(6))
+                    } else {
+                        addText(results, "${places.size} OFFLINE MAP RESULT(S) · NOT LIVE TRANSIT DATA", muted, 12f, true, dp(5))
+                        places.forEach { place ->
+                            val label = "${place.name}  ·  ${String.format(Locale.US, "%.5f, %.5f", place.coordinate.latitude, place.coordinate.longitude)}"
+                            results.addView(textButton(label, panelLight, white, 13f).apply {
+                                setOnClickListener { openReferenceOnMap(place.name, place.coordinate.latitude, place.coordinate.longitude) }
+                            }, LinearLayout.LayoutParams(-1, dp(46)).apply { bottomMargin = dp(4) })
+                        }
+                    }
+                }
+            } catch (error: Exception) {
+                handler.post {
+                    if (activePage == PAGE_RAIL) addText(results, "Offline map search failed: ${error.message ?: "map data could not be read"}", amber, 13f, false, dp(6))
+                }
+            }
+        }
+    }
+
+    private fun showDemoRailwayBoard(stationQuery: String) {
+        val stationName = stationQuery.trim().ifEmpty { "Example station (not a real station result)" }
+        val results = travelLookupResults ?: return
+        results.removeAllViews()
+        addText(results, "SIMULATION · NOT LIVE · FICTIONAL EXAMPLE ONLY", amber, 14f, true, dp(8))
+        addText(results, "Illustrative full-day board for: $stationName", white, 16f, true, dp(4))
+        addText(results, "These train names, times and platform numbers are invented demonstration values. They do not describe actual railway services or assignments.", muted, 12f, false, dp(8))
+        DemoRailwayBoard.trains.forEach { train ->
+            val item = card(results)
+            addText(item, "${train.time}  ·  ${train.name}", white, 14f, true, dp(3))
+            addText(item, "Platform ${train.platform} (SIMULATED)  ·  Example status: DEMO", amber, 12f, false, dp(2))
         }
     }
 

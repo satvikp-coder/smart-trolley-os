@@ -47,3 +47,18 @@
 
 The installed app is left on Navigation with the map visible. No package was
 removed/disabled and no HOME default changed.
+
+## Railway place-search follow-up
+
+- Installed updated API 19 APK `phase4-railway-map-demo.apk` with `adb install -r`;
+  `TrolleyHomeActivity` opened. The regional map search was exercised on the
+  tablet for `Gandhinagar`; it returned `23.22329, 72.64923`. Selecting the
+  result opened Navigation with the offline map description visible.
+- APK size 6,818,473 bytes; SHA-256
+  `8546EFEE7BDB02DC16E3B257892D2BE829D3AD6260D9043C6FAC993BB69780C8`; minSdk
+  19. The backup copy is preserved in the SmartTrolleyOS backups directory.
+- `LOAD SIMULATION` contains a morning-to-night example schedule in code and
+  its data constraints pass a unit test. On-device display of the board rows
+  was not verified. No physical touchscreen interaction was verified.
+- Launcher3 remains installed, `/data` remained approximately 2.4 GiB free,
+  `/sdcard` approximately 8.0 GiB free, and HOME selection remains unchanged.

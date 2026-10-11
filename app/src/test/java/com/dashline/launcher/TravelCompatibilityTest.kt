@@ -20,4 +20,12 @@ class TravelCompatibilityTest {
         assertNotNull(TravelApiClient.configured("https://travel.example/"))
         assertNull(GraphHopperProxyProvider.configured("http://travel.example/"))
     }
+
+    @Test
+    fun demoRailwayBoardCoversMorningThroughNightAndUsesBoundedPlatforms() {
+        assertTrue(DemoRailwayBoard.trains.size >= 8)
+        assertTrue(DemoRailwayBoard.trains.first().time < "07:00")
+        assertTrue(DemoRailwayBoard.trains.last().time >= "21:00")
+        assertTrue(DemoRailwayBoard.trains.all { it.name.startsWith("DEMO ") && it.platform in 1..4 })
+    }
 }
