@@ -1,3 +1,5 @@
+> **Attribution.** The launcher base is **Dashline**, an open-source Android launcher by metehankaygsz (GPL v3): https://github.com/metehankaygsz/dashline . It stays credited because this project is a derivative under GPL v3. The Smart Trolley work built on top of it (offline Ahmedabad-Gandhinagar maps, airport reference data, Railway, Trolley and Administrator screens) is mine.
+
 ## Smart Trolley OS edition
 
 This Phase 4 recovery continues the existing GPLv3 Dashline-based Smart
